@@ -146,13 +146,15 @@ class Lexer:
     t_ID = r'[' + harf + r'][' + harf + r'|' + adad + r']+'
     t_NUMBER = r'[' + adad + r']+'
     t_FIXED_CHARACTER = r'\\.{1}'
+    t_ignore = r' \t\r\f\v'
+
 
     def t_newline(self, t):
         r'\n+'
         t.lexer.lineno += t.value.count("\n")
 
     def t_error(self, t):
-        # print("Illegal character '%s'" % t.value)
+        print("Illegal character '%s'" % t.value)
         t.lexer.skip(1)
 
     def build(self, **kwargs):
@@ -165,8 +167,7 @@ class Lexer:
 
 # Test it out
 data = '''
-3 + 4 * 10
-  + -20 *2
+
 '''
 lexer = Lexer().build()
 # Give the lexer some input

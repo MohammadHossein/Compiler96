@@ -1,3 +1,6 @@
+# IN THE NAME OF GOD
+import codecs
+
 import ply.lex as lex
 
 
@@ -72,8 +75,8 @@ class Lexer:
 
     t_SEMICOLON = r';|' + semi_colon_farsi
     t_COMMA = r',|' + comma_farsi
-    t_OPENING_BRACE = r'}'
-    t_CLOSING_BRACE_K = r'{'
+    t_OPENING_BRACE = r'{'
+    t_CLOSING_BRACE_K = r'}'
     reserved = {
         'برنامه': 'PROGRAM_KW',
         'ساختار': 'STRUCTURE_KW',
@@ -165,45 +168,14 @@ class Lexer:
 
         return self.lexer
 
-
-# Test it out
-data = u'''
-برنامه مثال
-ساختار فاکتوریل }
-صحیح شماره = ۵ ؛
-صحیح مقدار؛
-}
-ساختار ریاضی }
-ثابت اعشاری پی = ۳.۱۴ ؛
-}
-صحیح نتیجه؛
-منطقی الکی = غلط؛
-حرف بیمقدار؛
-صحیح توان_دوم )صحیح عدد( برگردان عدد * عدد؛
-صحیح محاسبه_فاکتوریل )صحیح شماره( }
-صحیح شمارنده = ۱ ؛
-صحیح نتیجه = ۱ ؛
-اگر شماره == ۰ یا شماره == ۱ آنگاه }برگردان ۱ ؛{
-وگرنه }
-وقتی )شمارنده >= شماره( }
-نتیجه *= شمارنده؛
-شمارنده++؛
-}
-}
-}
-صحیح اصلی )( }
-فاکتوریل.مقدار = محاسبه_فاکتور یل )فاکتوریل.شمار ه(؛
-برگردان فاکتوریل.مقدار؛
-}
-'''
-lexer = Lexer().build()
-# Give the lexer some input
-lexer.input(data)
-# lexer.input('فاکتوریل')
-
-# Tokenize
-while True:
-    tok = lexer.token()
-    if not tok:
-        break  # No more input
-    print(tok)
+if __name__ == '__main__':
+    lexer = Lexer().build()
+    f = codecs.open('sample.fa',encoding='utf-8')
+    lexer.input(f.read())
+    f.close()
+    # Tokenize
+    while True:
+        tok = lexer.token()
+        if not tok:
+            break  # No more input
+        print(tok)

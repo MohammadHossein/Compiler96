@@ -65,6 +65,8 @@ class Lexer:
         'NUMBER',
     )
 
+    sTable = []
+
     harf = r'\u0622|\u0627|\u0628|\u067E|\u062A|\u062B|\u062C|\u0686|\u062D|\u062E|\u062F|\u0630|\u0631|\u0632' \
            r'|\u0698|\u0633|\u0634|\u0635|\u0636|\u0637|\u0638|\u0639|\u063A|\u0641|\u0642|\u0643|\u06AF|\u0644' \
            r'|\u0645|\u0646|\u0647|\u0648|\u0649|\u06A9|\u064A|\u06CC|\u06BE|\u06D5|\u06C1|\_'
@@ -146,6 +148,11 @@ class Lexer:
         r'|\u0645|\u0646|\u0647|\u0648|\u0649|\u06A9|\u064A|\u06CC|\u06BE|\u06D5|\u06C1|\_|\u0660|\u0661|\u0662|\u0663|\u0664|\u0665|\u0666|\u0667|\u0668|\u0669|\u06F0|\u06F1|\u06F2|\u06F3' \
         r'|\u06F4|\u06F5|\u06F6|\u06F7|\u06F8|\u06F9|0|1|2|3|4|5|6|7|8|9]+'
         t.type = self.reserved.get(t.value, 'ID')  # Check for reserved words
+        if t.type == 'ID':
+            if t.value not in self.sTable:
+                self.sTable.append(t.value)
+
+
         return t
 
     def t_COMMENT(self, t):
@@ -170,7 +177,7 @@ class Lexer:
 
 if __name__ == '__main__':
     lexer = Lexer().build()
-    f = codecs.open('sample.fa',encoding='utf-8')
+    f = codecs.open('sample.fa', encoding='utf-8')
     lexer.input(f.read())
     f.close()
     # Tokenize
@@ -178,4 +185,11 @@ if __name__ == '__main__':
         tok = lexer.token()
         if not tok:
             break  # No more input
-        print(tok)
+        parsIndex = '-'
+        if tok.type == 'ID':
+            for i in range(len(Lexer.sTable)):
+                if Lexer.sTable[i] == tok.value:
+                    parsIndex = i
+                    break
+
+        print(tok.value + "\t" + tok.type + "\t" + str(parsIndex))

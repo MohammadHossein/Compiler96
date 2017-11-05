@@ -1,11 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="6c99d94a-248b-4fd6-b4fe-0623bd78ed5e" name="Default" comment="showing index of parse table in result added">
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/lex.py" afterPath="$PROJECT_DIR$/lex.py" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/sample.fa" afterPath="$PROJECT_DIR$/sample.fa" />
-    </list>
+    <list default="true" id="6c99d94a-248b-4fd6-b4fe-0623bd78ed5e" name="Default" comment="" />
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -417,7 +413,14 @@
       <option name="project" value="LOCAL" />
       <updated>1509721767078</updated>
     </task>
-    <option name="localTasksCounter" value="9" />
+    <task id="LOCAL-00009" summary="fixed float number and int number&#10;some other change">
+      <created>1509889890876</created>
+      <option name="number" value="00009" />
+      <option name="presentableId" value="LOCAL-00009" />
+      <option name="project" value="LOCAL" />
+      <updated>1509889890876</updated>
+    </task>
+    <option name="localTasksCounter" value="10" />
     <servers />
   </component>
   <component name="ToolWindowManager">
@@ -464,7 +467,8 @@
     <MESSAGE value="test2" />
     <MESSAGE value="Finally precedence corrected" />
     <MESSAGE value="showing index of parse table in result added" />
-    <option name="LAST_COMMIT_MESSAGE" value="showing index of parse table in result added" />
+    <MESSAGE value="fixed float number and int number&#10;some other change" />
+    <option name="LAST_COMMIT_MESSAGE" value="fixed float number and int number&#10;some other change" />
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>

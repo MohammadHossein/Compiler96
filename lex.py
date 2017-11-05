@@ -104,7 +104,7 @@ class Lexer:
         'یا': 'THEN_OR_KW',
         'و': 'THEN_AND_KW',
         'یا وگرنه': 'OR_KW',
-        'و همچنین': 'AND_KW',
+        'وهمچنین': 'AND_KW',
         'خلاف': 'NOT_KW',
         'درست': 'TRUE_KW',
         'غلط': 'FALSE_KW',
@@ -134,7 +134,7 @@ class Lexer:
     t_MINUS = r'-'
     t_MUL = r'\*'
     t_DIV = r'\/'
-    t_MOD = r'٪'
+    t_MOD = r'٪|%'
     t_QUESTION_MARK = r'\?|\؟'
     t_DOT = r'\.'
 
@@ -145,7 +145,7 @@ class Lexer:
 
 
     t_FIXED_CHARACTER = r'\\.{1}'
-    t_ignore = r' '
+    t_ignore = ' \t'
 
     def t_ID(self, t):
         r'[\u0622|\u0627|\u0628|\u067E|\u062A|\u062B|\u062C|\u0686|\u062D|\u062E|\u062F|\u0630|\u0631|\u0632' \

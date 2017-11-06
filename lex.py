@@ -103,7 +103,7 @@ class Lexer:
         'بشکن': 'BREAK_KW',
         'یا': 'THEN_OR_KW',
         'و': 'THEN_AND_KW',
-        'یا وگرنه': 'OR_KW',
+        'یاوگرنه': 'OR_KW',
         'وهمچنین': 'AND_KW',
         'خلاف': 'NOT_KW',
         'درست': 'TRUE_KW',
@@ -113,8 +113,8 @@ class Lexer:
 
     t_OPENING_BRACKET = r'\]'
     t_CLOSING_BRACKET = r'\['
-    t_OPENING_PARENTHESES = r'\)'
-    t_COSING_PARENTHESES = r'\('
+    t_OPENING_PARENTHESES = r'\('
+    t_COSING_PARENTHESES = r'\)'
 
     t_COLON = r':'
     t_EXP = r'='
@@ -195,12 +195,7 @@ if __name__ == '__main__':
         if not tok:
             break  # No more input
         parsIndex = '-'
-        # if tok.type == 'ID':
-        #     for i in range(len(Lexer.sTable)):
-        #         if Lexer.sTable[i] == tok.value:
-        #             parsIndex = i
-        #             break
-        i=-1
+        i = -1
         if tok.type == 'ID':
             i = Lexer.sTable.index(tok.value)
         parsIndex = {'-1': '-'}.get(str(i), str(i))

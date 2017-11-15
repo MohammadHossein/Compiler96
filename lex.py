@@ -12,7 +12,7 @@ class Lexer:
         'PROGRAM_KW',
         'STRUCTURE_KW',
         'OPENING_BRACE',
-        'CLOSING_BRACE_K',
+        'CLOSING_BRACE',
         'CONSTANT_KW',
         'CHAR_KW',
         'BOOLEAN_KW',

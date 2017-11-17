@@ -103,7 +103,7 @@ class Lexer:
         'بشکن': 'BREAK_KW',
         'یا': 'THEN_OR_KW',
         'و': 'THEN_AND_KW',
-        'یاوگرنه': 'OR_KW',
+        'یاوگرن ه': 'OR_KW',
         'وهمچنین': 'AND_KW',
         'خلاف': 'NOT_KW',
         'درست': 'TRUE_KW',

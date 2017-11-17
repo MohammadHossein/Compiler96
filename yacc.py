@@ -78,20 +78,20 @@ class Yacc:
         """jens : CHAR_KW"""
         logger('Role8.4 : jens -> حرف')
 
-    def p_tarifeMotheghayyer(self,p):
+    def p_tarifeMotheghayyer(self, p):
         """tarifeMotheghayyer : jens tarifhayeMotheghayyerha SEMICOLON"""
         logger('Role9 : tarifeMotheghayyer -> jens tarifhayeMotheghayyerha ;')
 
-    def p_tarifhayeMotegayyerha(self,p):
+    def p_tarifhayeMotegayyerha(self, p):
         """tarifhayeMotheghayyerha : tarifeMeghdareAvvalie
                                 |   tarifhayeMotheghayyerha COMMA tarifeMeghdareAvvalie
         """
-        if len(p)==2:
+        if len(p) == 2:
             logger('Role10.1 : tarifhayeMotheghayyerha -> tarifeMeghdareAvvalie')
         elif len(p) == 4:
             logger('Role10.2 : tarifhayeMotheghayyerha -> tarifhayeMotheghayyerha , tarifeMeghdareAvvalie')
 
-    def p_tarifeMeghdareAvvalie(self,p):
+    def p_tarifeMeghdareAvvalie(self, p):
         """tarifeMeghdareAvvalie : tarifeShenaseyeMoteghayyer
                                 |  tarifeShenaseyeMoteghayyer EXP ebarateSade
         """
@@ -99,15 +99,17 @@ class Yacc:
             logger('Role11.1 : tarifeMeghdareAvvalie -> tarifeShenaseyeMoteghayyer')
         elif len(p) == 4:
             logger('Role11.2 : tarifeMeghdareAvvalie -> tarifeShenaseyeMoteghayyer EXP ebarateSade')
-    def p_tarifeShenaseyeMoteghayyer(self,p):
+
+    def p_tarifeShenaseyeMoteghayyer(self, p):
         """tarifeShenaseyeMoteghayyer : ID
                                 | ID OPENING_BRACKET NUMBER_INT CLOSINGBRACE
         """
-        if len(p) == 2 :
+        if len(p) == 2:
             logger('Role12.1 : tarifeShenaseyeMoteghayyer -> ID')
         elif len(p) == 5:
             logger('Role12.1 : tarifeShenaseyeMoteghayyer -> ID [ NUMBER_INT ]')
-    def p_tarifeTabe(self,p):
+
+    def p_tarifeTabe(self, p):
         """tarifeTabe : jens ID OPENING_PARENTHESES vorudi CLOSING_PARENTHESES jomle
                     |   ID OPENING_PARENTHESES vorudi CLOSING_PARENTHESES jomle
         """
@@ -115,15 +117,16 @@ class Yacc:
             logger('Role13.1 tarifeTabe -> jens ID ( vorudi ) jomle')
         elif len(p) == 6:
             logger('Role13.2 tarifeTabe -> ID ( vorudi ) jomle')
-    def p_vorudi1(self,p):
+
+    def p_vorudi1(self, p):
         """vorudi : vorudiha"""
         logger('Role14.1 vorudi -> vorudiha')
 
-    def p_vorudi2(self,p):
+    def p_vorudi2(self, p):
         """vorudi : empty"""
         logger('Role14.2 vorudi -> 𝜀')
 
-    def p_vorudiha(self,p):
+    def p_vorudiha(self, p):
         """vorudiha : vorudiha SEMICOLON jensVorudiha
                     | jensVorudiha
         """
@@ -132,10 +135,11 @@ class Yacc:
         elif len(p) == 2:
             logger('Role15.2 : vorudiha -> jensVorudiha')
 
-    def p_jensVorudiha(self,p):
+    def p_jensVorudiha(self, p):
         """jensVorudiha : jens shenaseyeVorudiha"""
         logger('Role16 : jensVorudiha -> jens shenaseyeVorudiha')
-    def p_shenaseyeVorudiha(self,p):
+
+    def p_shenaseyeVorudiha(self, p):
         """shenaseyeVorudiha : shenaseyeVorudiha COMMA shenaseyeVorudi
                             | shenaseyeVorudi
         """
@@ -144,7 +148,7 @@ class Yacc:
         elif len(p) == 2:
             logger('Role17.2 : shenaseyeVorudiha -> shenaseyeVorudi')
 
-    def p_shenaseyeVorudi(self,p):
+    def p_shenaseyeVorudi(self, p):
         """shenaseyeVorudi : ID
                             | ID OPENING_BRACE CLOSING_BRACE
         """
@@ -152,33 +156,100 @@ class Yacc:
             logger('Role18.1 : shenaseyeVorudi -> ID')
         if len(p) == 4:
             logger('Role18.2 : shenaseyeVorudi -> ID [ ]')
-    def p_jomle_1(self,p):
+
+    def p_jomle_1(self, p):
         """jomle : jomleyeMorakkab"""
         logger('Role19.1 : jomle -> jomleyeMorakkab')
-    def p_jomle_2(self,p):
+
+    def p_jomle_2(self, p):
         """jomle : jomleyeEbarat"""
         logger('Role19.2 : jomle -> jomleyeEbarat')
-    def p_jomle_3(self,p):
+
+    def p_jomle_3(self, p):
         """jomle : jomleyeEntekhab"""
         logger('Role19.3 : jomle -> jomleyeEntekhab')
-    def p_jomle_4(self,p):
+
+    def p_jomle_4(self, p):
         """jomle : jomleyeTekrar"""
         logger('Role19.4 : jomle -> jomleyeTekrar')
-    def p_jomle_5(self,p):
+
+    def p_jomle_5(self, p):
         """jomle : jomleyeBazgasht"""
         logger('Role19.5 : jomle -> jomleyeBazgasht')
-    def p_jomle_6(self,p):
+
+    def p_jomle_6(self, p):
         """jomle : jomleyeShekast"""
         logger('Role19.6 : jomle -> jomleyeShekast')
-    def p_jomleyeMorakkab(self,p):
+
+    def p_jomleyeMorakkab(self, p):
         """jomleyeMorakkab : OPENING_BRACE tarifhayeMahalli jomleha CLOSING_BRACE"""
         logger('Role20 : jomleyeMorakkab -> { tarifhayeMahalli jomleha }')
 
+    def p_jomleha(self, p):
+        """jomleha : jomleha jomle
+                    | empty
+        """
+        if len(p) == 3:
+            logger('Role21.1 : jomleha -> jomleha jomle')
+        elif len(p) == 2:
+            logger('Role21.2 : jomleha -> 𝜀')
+
+    def p_jomleyeEbarat(self, p):
+        """jomleyeEbarat : ebarat SEMICOLON
+                        | SEMICOLON
+        """
+        if len(p) == 3:
+            logger('Role22.1 : jomleyeEbarat -> ebarat ;')
+        elif len(p) == 2:
+            logger('Role22.2 : jomleyeEbarat -> ;')
+
+    def p_jomleyeEntekhab(self, p):
+        """jomleyeEntekhab : IF_KW ebarateSade THEN_KW jomle
+                        | IF_KW ebarateSade THEN_KW jomle ELSE_KW jomle
+                        | SWITCH_KW OPENING_PARENTHESES ebarateSade CLOSING_PARENTHESES onsoreHalat onsorePishfarz END_KW
+        """
+        if len(p) == 5:
+            logger('Role23.1 : jomleyeEntekhab -> اگر ebarateSade آنگاه jomle')
+        if len(p) == 7:
+            logger('Role23.2 : jomleyeEntekhab -> اگر ebarateSade آنگاه jomle وگرنه jomle')
+        if len(p) == 8:
+            logger('Role23.3 : jomleyeEntekhab -> کلید ( ebarateSade ) onsoreHalat onsorePishfarz تمام')
+
+    def p_onsoreHalat(self, p):
+        """onsoreHalat : CASE_KW NUMBER_INT COLON jomle SEMICOLON
+                    |   onsoreHalat CASE_KW NUMBER_INT COLON jomle SEMICOLON
+        """
+        if len(p) == 6:
+            logger('Role24.1 : onsoreHalat -> حالت NUMBER_INT : jomle ;')
+        elif len(p) == 7:
+            logger('Role24.2 : onsoreHalat -> onsoreHalat حالت NUMBER_INT : jomle ;')
+
+    def p_onsorePishfarz(self, p):
+        """onsorePishfarz : DEFAULT_KW COLON jomle SEMICOLON
+                        |   empty
+        """
+        if len(p) == 4:
+            logger('Role25.1 : onsorePishfarz -> پیشفرض : jomle ;')
+        elif len(p) == 2:
+            logger('Role25.1 : onsorePishfarz -> 𝜀')
+
+    def p_jomleyeTekrar(self, p):
+        """jomleyeTekrar : WHILE_KW OPENING_PARENTHESES ebarateSade CLOSING_PARENTHESES jomle"""
+
+        logger('Role26 : jomleyeTekrar -> وقتی ( ebarateSade ) jomle')
+
+    def p_jomleyeBazgasht(self, p):
+        """jomleyeBazgasht : RETURN_KW SEMICOLON
+                        |   RETURN_KW ebarat SEMICOLON
+        """
+        if len(p) == 3:
+            logger('Role27.1 : jomleyeBazgasht -> برگردان ;')
+        if len(p) == 4:
+            logger('Role27.1 : jomleyeBazgasht -> برگردان ebarat ;')
 
     def p_jomleyeShekast(self, p):
         """jomleyeShekast : BREAK_KW SEMICOLON"""
         logger('Role28 : jomleyeShekast -> BREAK_KW SEMICOLON')
-
 
     def p_ebarat_1(self, p):
         """ebarat : taghirpazir EXP ebarat"""
@@ -212,7 +283,6 @@ class Yacc:
         """ebarat : ebarateSade"""
         logger('Role29.7 : ebarat -> ebarateSade')
 
-
     def p_ebarateSade_1(self, p):
         """ebarateSade : ebarateSade THEN_OR_KW ebarateSade"""
         logger('Role30.1 : ebarateSade -> ebarateSade THEN_OR_KW ebarateSade')
@@ -237,7 +307,6 @@ class Yacc:
         """ebarateSade : ebarateRabetei"""
         logger('Role30.6 : ebarateSade -> ebarateRabetei')
 
-
     def p_ebarateRabetei_1(self, p):
         """ebarateRabetei : ebarateRiaziManteghi"""
         logger('Role31.1 : ebarateRabetei -> ebarateRiaziManteghi')
@@ -245,7 +314,6 @@ class Yacc:
     def p_ebarateRabetei_2(self, p):
         """ebarateRabetei : ebarateRiaziManteghi amalgareRabetei ebarateRiaziManteghi"""
         logger('Role31.2 : ebarateRabetei -> ebarateRiaziManteghi amalgareRabetei ebarateRiaziManteghi')
-
 
     def p_amalgareRabetei_1(self, p):
         """amalgareRabetei : LT"""
@@ -267,8 +335,6 @@ class Yacc:
         """amalgareRabetei : G"""
         logger('Role32.5 : amalgareRabetei -> G')
 
-
-
     def p_ebarateRiaziManteghi_1(self, p):
         """ebarateRiaziManteghi : ebarateYegani"""
         logger('Role33.1 : ebarateRiaziManteghi -> ebarateYegani')
@@ -276,8 +342,6 @@ class Yacc:
     def p_ebarateRiaziManteghi_2(self, p):
         """ebarateRiaziManteghi : ebarateRiaziManteghi amalgareRiazi ebarateRiaziManteghi"""
         logger('Role33.2 : ebarateRiaziManteghi -> ebarateRiaziManteghi amalgareRiazi ebarateRiaziManteghi')
-
-
 
     def p_amalgareRiazi_1(self, p):
         """amalgareRiazi : MINUS"""
@@ -298,8 +362,6 @@ class Yacc:
     def p_amalgareRiazi_5(self, p):
         """amalgareRiazi : MOD"""
         logger('Role34.5 : amalgareRiazi -> MOD')
-
-
 
     def p_ebarateYegani_1(self, p):
         """ebarateYegani : amalgareYegani ebarateYegani"""

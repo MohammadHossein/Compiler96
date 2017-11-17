@@ -82,7 +82,7 @@ class Lexer:
     t_SEMICOLON = r';|' + semi_colon_farsi
     t_COMMA = r',|' + comma_farsi
     t_OPENING_BRACE = r'{'
-    t_CLOSING_BRACE_K = r'}'
+    t_CLOSING_BRACE = r'}'
     reserved = {
         'برنامه': 'PROGRAM_KW',
         'ساختار': 'STRUCTURE_KW',
@@ -144,7 +144,7 @@ class Lexer:
     t_NUMBER_FLOAT = r'(([' + adadNoneZero + r']' + r'[' + adad + r']*)|(0|\u0660|\u06F0))' + r'\.((0|\u0660|\u06F0)|' + r'([' + adad + r']*' + r'[' + adadNoneZero + r']))'
 
 
-    t_FIXED_CHARACTER = r'\\.{1}'
+    t_FIXED_CHARACTER = r'\'\\.{1}\''
     t_ignore = ' \t'
 
     def t_ID(self, t):

@@ -1,7 +1,7 @@
 # IN THE NAME OF GOD
-import codecs
 
 import ply.lex as lex
+
 
 
 class Lexer:
@@ -21,7 +21,7 @@ class Lexer:
         'OPENING_BRACKET',
         'CLOSING_BRACKET',
         'OPENING_PARENTHESES',
-        'COSING_PARENTHESES',
+        'CLOSING_PARENTHESES',
         'IF_KW',
         'THEN_KW',
         'ELSE_KW',
@@ -49,7 +49,7 @@ class Lexer:
         'LE',
         'EQ',
         'GE',
-        'G',
+        'GT',
         'PLUS',
         'MINUS',
         'MUL',
@@ -103,7 +103,7 @@ class Lexer:
         'بشکن': 'BREAK_KW',
         'یا': 'THEN_OR_KW',
         'و': 'THEN_AND_KW',
-        'یاوگرن ه': 'OR_KW',
+        'یاوگرنه': 'OR_KW',
         'وهمچنین': 'AND_KW',
         'خلاف': 'NOT_KW',
         'درست': 'TRUE_KW',
@@ -114,7 +114,7 @@ class Lexer:
     t_OPENING_BRACKET = r'\]'
     t_CLOSING_BRACKET = r'\['
     t_OPENING_PARENTHESES = r'\('
-    t_COSING_PARENTHESES = r'\)'
+    t_CLOSING_PARENTHESES = r'\)'
 
     t_COLON = r':'
     t_EXP = r'='
@@ -129,7 +129,7 @@ class Lexer:
     t_LE = r'<='
     t_EQ = r'=='
     t_GE = r'>='
-    t_G = r'>'
+    t_GT = r'>'
     t_PLUS = r'\+'
     t_MINUS = r'-'
     t_MUL = r'\*'
@@ -182,21 +182,3 @@ class Lexer:
         self.lexer = lex.lex(module=self, **kwargs)
 
         return self.lexer
-
-
-if __name__ == '__main__':
-    lexer = Lexer().build()
-    f = codecs.open('sample.fa', encoding='utf-8')
-    lexer.input(f.read())
-    f.close()
-    # Tokenize
-    while True:
-        tok = lexer.token()
-        if not tok:
-            break  # No more input
-        parsIndex = '-'
-        i = -1
-        if tok.type == 'ID':
-            i = Lexer.sTable.index(tok.value)
-        parsIndex = {'-1': '-'}.get(str(i), str(i))
-        print(tok.value + "\t" + tok.type + "\t" + str(parsIndex))

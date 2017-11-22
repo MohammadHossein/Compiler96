@@ -1,4 +1,6 @@
 import codecs
+import logging
+
 from lex import Lexer
 from yacc import Yacc
 
@@ -9,7 +11,7 @@ if __name__ == '__main__':
     f.close()
     lexer.input(data)
     # Tokenize
-    """
+
     while True:
         tok = lexer.token()
         if not tok:
@@ -20,6 +22,6 @@ if __name__ == '__main__':
             i = Lexer.sTable.index(tok.value)
         parsIndex = {'-1': '-'}.get(str(i), str(i))
         print(tok.value + "\t" + tok.type + "\t" + str(parsIndex))
-    """
+
     print(Yacc().build().parse(data, Lexer().build(),True))
 

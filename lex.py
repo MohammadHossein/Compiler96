@@ -140,7 +140,7 @@ class Lexer:
 
     # t_ID = r'[آ-ی|\_][آ-ی|۰-۹|0-9['
     # t_ID = r'[' + harf + r'][' + harf + r'|' + adad + r']+'
-    t_NUMBER_INT = r'[' + adadNoneZero + r']' + r'[' + adad + r']*'
+    t_NUMBER_INT = r'[' + adadNoneZero + r']' + r'[' + adad + r']*|(0|\u0660|\u06F0)'
     t_NUMBER_FLOAT = r'(([' + adadNoneZero + r']' + r'[' + adad + r']*)|(0|\u0660|\u06F0))' + r'\.((0|\u0660|\u06F0)|' + r'([' + adad + r']*' + r'[' + adadNoneZero + r']))'
 
 

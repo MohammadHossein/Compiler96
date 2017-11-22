@@ -1,6 +1,7 @@
 from ply import yacc
 
 import lex
+import logging
 
 
 def logger(log):
@@ -113,7 +114,7 @@ class Yacc:
 
     def p_tarifeShenaseyeMoteghayyer(self, p):
         """tarifeShenaseyeMoteghayyer : ID
-                                | ID OPENING_BRACKET NUMBER_INT CLOSING_BRACE
+                                | ID OPENING_BRACKET NUMBER_INT CLOSING_BRACKET
         """
         if len(p) == 2:
             logger('Rule 12.1 : tarifeShenaseyeMoteghayyer -> ID')
@@ -207,7 +208,6 @@ class Yacc:
 
     def p_jomleyeEbarat(self, p):
         """jomleyeEbarat : ebarat SEMICOLON
-                        | SEMICOLON
         """
         if len(p) == 3:
             logger('Rule 22.1 : jomleyeEbarat -> ebarat ;')
@@ -227,8 +227,8 @@ class Yacc:
             logger('Rule 23.3 : jomleyeEntekhab -> کلید ( ebarateSade ) onsoreHalat onsorePishfarz تمام')
 
     def p_onsoreHalat(self, p):
-        """onsoreHalat : CASE_KW NUMBER_INT COLON jomle SEMICOLON
-                    |   onsoreHalat CASE_KW NUMBER_INT COLON jomle SEMICOLON
+        """onsoreHalat : CASE_KW NUMBER_INT COLON jomle
+                    |   onsoreHalat CASE_KW NUMBER_INT COLON jomle
         """
         if len(p) == 6:
             logger('Rule 24.1 : onsoreHalat -> حالت NUMBER_INT : jomle ;')
@@ -236,7 +236,7 @@ class Yacc:
             logger('Rule 24.2 : onsoreHalat -> onsoreHalat حالت NUMBER_INT : jomle ;')
 
     def p_onsorePishfarz(self, p):
-        """onsorePishfarz : DEFAULT_KW COLON jomle SEMICOLON
+        """onsorePishfarz : DEFAULT_KW COLON jomle
                         |   empty
         """
         if len(p) == 4:
@@ -469,6 +469,12 @@ class Yacc:
 
     def p_error(self, p):
         print('syntax error')
+        # if p:
+        #     print("Syntax error at token", p.type)
+        #     Just discard the token and tell the parser it's okay.
+        # self.parser.errok()
+        # else:
+        #     print("Syntax error at EOF")
 
     # Empty Rule 
 

@@ -260,35 +260,35 @@ class Yacc:
 
     def p_jomleyeShekast(self, p):
         """jomleyeShekast : BREAK_KW SEMICOLON"""
-        logger('Rule 28 : jomleyeShekast -> BREAK_KW SEMICOLON')
+        logger('Rule 28 : jomleyeShekast -> بشکن ;')
 
     def p_ebarat_1(self, p):
         """ebarat : taghirpazir EXP ebarat"""
-        logger('Rule 29.1 : ebarat -> taghirpazir EXP ebarat')
+        logger('Rule 29.1 : ebarat -> taghirpazir = ebarat')
 
     def p_ebarat_2(self, p):
         """ebarat : taghirpazir PLUS_EXP ebarat"""
-        logger('Rule 29.2 : ebarat -> taghirpazir PLUS_EXP ebarat')
+        logger('Rule 29.2 : ebarat -> taghirpazir += ebarat')
 
     def p_ebarat_3(self, p):
         """ebarat : taghirpazir MINUS_EXP ebarat"""
-        logger('Rule 29.3 : ebarat -> taghirpazir MINUS_EXP ebarat')
+        logger('Rule 29.3 : ebarat -> taghirpazir -= ebarat')
 
     def p_ebarat_4(self, p):
         """ebarat : taghirpazir MUL_EXP ebarat"""
-        logger('Rule 29.4 : ebarat -> taghirpazir MUL_EXP ebarat')
+        logger('Rule 29.4 : ebarat -> taghirpazir *= ebarat')
 
     def p_ebarat_5(self, p):
         """ebarat : taghirpazir DIV_EXP ebarat"""
-        logger('Rule 29.5 : ebarat -> taghirpazir DIV_EXP ebarat')
+        logger('Rule 29.5 : ebarat -> taghirpazir /= ebarat')
 
     def p_ebarat_6(self, p):
         """ebarat : taghirpazir PLUSPLUS"""
-        logger('Rule 29.6 : ebarat -> taghirpazir PLUSPLUS')
+        logger('Rule 29.6 : ebarat -> taghirpazir ++')
 
     def p_ebarat_7(self, p):
         """ebarat : taghirpazir MINUSMINUS"""
-        logger('Rule 29.7 : ebarat -> taghirpazir MINUSMINUS')
+        logger('Rule 29.7 : ebarat -> taghirpazir --')
 
     def p_ebarat_8(self, p):
         """ebarat : ebarateSade"""
@@ -296,23 +296,23 @@ class Yacc:
 
     def p_ebarateSade_1(self, p):
         """ebarateSade : ebarateSade THEN_OR_KW ebarateSade"""
-        logger('Rule 30.1 : ebarateSade -> ebarateSade THEN_OR_KW ebarateSade')
+        logger('Rule 30.1 : ebarateSade -> ebarateSade یاوگرنه ebarateSade')
 
     def p_ebarateSade_2(self, p):
         """ebarateSade : ebarateSade THEN_AND_KW ebarateSade"""
-        logger('Rule 30.2 : ebarateSade -> ebarateSade THEN_AND_KW ebarateSade')
+        logger('Rule 30.2 : ebarateSade -> ebarateSade وهمچنین ebarateSade')
 
     def p_ebarateSade_3(self, p):
         """ebarateSade : ebarateSade OR_KW ebarateSade"""
-        logger('Rule 30.3 : ebarateSade -> ebarateSade OR_KW ebarateSade')
+        logger('Rule 30.3 : ebarateSade -> ebarateSade یا ebarateSade')
 
     def p_ebarateSade_4(self, p):
         """ebarateSade : ebarateSade AND_KW ebarateSade"""
-        logger('Rule 30.4 : ebarateSade -> ebarateSade AND_KW ebarateSade')
+        logger('Rule 30.4 : ebarateSade -> ebarateSade و ebarateSade')
 
     def p_ebarateSade_5(self, p):
         """ebarateSade : NOT_KW ebarateSade"""
-        logger('Rule 30.5 : ebarateSade -> NOT_KW ebarateSade')
+        logger('Rule 30.5 : ebarateSade -> ! ebarateSade')
 
     def p_ebarateSade_6(self, p):
         """ebarateSade : ebarateRabetei"""
@@ -328,23 +328,23 @@ class Yacc:
 
     def p_amalgareRabetei_1(self, p):
         """amalgareRabetei : LT"""
-        logger('Rule 32.1 : amalgareRabetei -> LT')
+        logger('Rule 32.1 : amalgareRabetei -> <')
 
     def p_amalgareRabetei_2(self, p):
         """amalgareRabetei : LE"""
-        logger('Rule 32.2 : amalgareRabetei -> LE')
+        logger('Rule 32.2 : amalgareRabetei -> <=')
 
     def p_amalgareRabetei_3(self, p):
         """amalgareRabetei : EQ"""
-        logger('Rule 32.3 : amalgareRabetei -> EQ')
+        logger('Rule 32.3 : amalgareRabetei -> ==')
 
     def p_amalgareRabetei_4(self, p):
         """amalgareRabetei : GE"""
-        logger('Rule 32.4 : amalgareRabetei -> GE')
+        logger('Rule 32.4 : amalgareRabetei -> >=')
 
     def p_amalgareRabetei_5(self, p):
         """amalgareRabetei : GT"""
-        logger('Rule 32.5 : amalgareRabetei -> GT')
+        logger('Rule 32.5 : amalgareRabetei -> >')
 
     def p_ebarateRiaziManteghi_1(self, p):
         """ebarateRiaziManteghi : ebarateYegani"""
@@ -356,23 +356,23 @@ class Yacc:
 
     def p_amalgareRiazi_1(self, p):
         """amalgareRiazi : MINUS"""
-        logger('Rule 34.1 : amalgareRiazi -> MINUS')
+        logger('Rule 34.1 : amalgareRiazi -> -')
 
     def p_amalgareRiazi_2(self, p):
         """amalgareRiazi : MUL"""
-        logger('Rule 34.2 : amalgareRiazi -> MUL')
+        logger('Rule 34.2 : amalgareRiazi -> *')
 
     def p_amalgareRiazi_3(self, p):
         """amalgareRiazi : PLUS"""
-        logger('Rule 34.3 : amalgareRiazi -> PLUS')
+        logger('Rule 34.3 : amalgareRiazi -> +')
 
     def p_amalgareRiazi_4(self, p):
         """amalgareRiazi : DIV"""
-        logger('Rule 34.4 : amalgareRiazi -> DIV')
+        logger('Rule 34.4 : amalgareRiazi -> /')
 
     def p_amalgareRiazi_5(self, p):
         """amalgareRiazi : MOD"""
-        logger('Rule 34.5 : amalgareRiazi -> MOD')
+        logger('Rule 34.5 : amalgareRiazi -> %')
 
     def p_ebarateYegani_1(self, p):
         """ebarateYegani : amalgareYegani ebarateYegani"""
@@ -384,15 +384,15 @@ class Yacc:
 
     def p_amalgareYegani_1(self, p):
         """amalgareYegani : MINUS"""
-        logger('Rule 36.1 : amalgareYegani -> MINUS')
+        logger('Rule 36.1 : amalgareYegani -> -')
 
     def p_amalgareYegani_2(self, p):
         """amalgareYegani : MUL"""
-        logger('Rule 36.2 : amalgareYegani -> MUL')
+        logger('Rule 36.2 : amalgareYegani -> *')
 
     def p_amalgareYegani_3(self, p):
         """amalgareYegani : QUESTION_MARK"""
-        logger('Rule 36.3 : amalgareYegani -> QUESTION_MARK')
+        logger('Rule 36.3 : amalgareYegani -> ?')
 
     def p_amel_1(self, p):
         """amel : taghirpazir"""
@@ -408,11 +408,11 @@ class Yacc:
 
     def p_taghirpazir_2(self, p):
         """taghirpazir : taghirpazir OPENING_BRACKET ebarat CLOSING_BRACKET"""
-        logger('Rule 38.2 : taghirpazir -> taghirpazir OPENING_BRACKET ebarat CLOSING_BRACKET')
+        logger('Rule 38.2 : taghirpazir -> taghirpazir [ ebarat ]')
 
     def p_taghirpazir_3(self, p):
         """taghirpazir :  taghirpazir DOT ID"""
-        logger('Rule 38.3 : taghirpazir -> taghirpazir DOT ID')
+        logger('Rule 38.3 : taghirpazir -> taghirpazir . ID')
 
     def p_taghirnapazir_1(self, p):
         """taghirnapazir : OPENING_PARENTHESES ebarat CLOSING_PARENTHESES"""
@@ -443,7 +443,7 @@ class Yacc:
                             | ebarat
         """
         if len(p) == 3:
-            logger('Rule 42.1: bordareVorudiha -> bordareVorudiha COMMA')
+            logger('Rule 42.1: bordareVorudiha -> bordareVorudiha ,')
         elif len(p) == 2:
             logger('Rule 42.2 :bordareVorudiha -> ebarat')
 

@@ -101,18 +101,18 @@ class Lexer:
         'وقتی': 'WHILE_KW',
         'برگردان': 'RETURN_KW',
         'بشکن': 'BREAK_KW',
-        'یا': 'THEN_OR_KW',
-        'و': 'THEN_AND_KW',
-        'یاوگرنه': 'OR_KW',
-        'وهمچنین': 'AND_KW',
+        'یا': 'OR_KW',
+        'و': 'AND_KW',
+        'یاوگرنه': 'THEN_OR_KW',
+        'وهمچنین': 'THEN_AND_KW',
         'خلاف': 'NOT_KW',
         'درست': 'TRUE_KW',
         'غلط': 'FALSE_KW',
         'اصلی': 'MAIN'
     }
 
-    t_OPENING_BRACKET = r'\]'
-    t_CLOSING_BRACKET = r'\['
+    t_OPENING_BRACKET = r'\['
+    t_CLOSING_BRACKET = r'\]'
     t_OPENING_PARENTHESES = r'\('
     t_CLOSING_PARENTHESES = r'\)'
 

@@ -79,7 +79,7 @@ class Lexer:
     comma_farsi = r'\u060C'
 
     t_SEMICOLON = r';|' + semi_colon_farsi
-    t_COMMA = r',|' + comma_farsi
+    t_COMMA = r',|٬|' + comma_farsi
     t_OPENING_BRACE = r'{'
     t_CLOSING_BRACE = r'}'
     reserved = {
@@ -147,11 +147,30 @@ class Lexer:
     #         t.value = t.value[1:]
     #
     #     return t
-    t_NUMBER_INT = r'[' + adadNoneZero + r']' + r'[' + adad + r']*'
-    t_NUMBER_FLOAT = r'(([' + adadNoneZero + r']' + r'[' + adad + r']*)|(0|\u0660|\u06F0))' + r'\.((0|\u0660|\u06F0)|' + r'([' + adad + r']*' + r'[' + adadNoneZero + r']))'
+    # t_NUMBER_INT = r'[' + adadNoneZero + r']' + r'[' + adad + r']*'
+    # t_NUMBER_INT = r'[' + adad + r']+'
+    # t_NUMBER_FLOAT = r'((' + r'[' + adad + r']*)|(0|\u0660|\u06F0))' + r'\.((0|\u0660|\u06F0)|' + r'([' + adad + r']*' + r'[' + adadNoneZero + r']))'
+    # t_NUMBER_FLOAT = r'[' + adad + r']+[\.][' + adad + r']+'
 
     t_FIXED_CHARACTER = r'\'\\.{1}\''
     t_ignore = ' \t'
+
+    def t_NUMBER_FLOAT(self, t):
+        r'[\u0660|\u0661|\u0662|\u0663|\u0664|\u0665|\u0666|\u0667|\u0668|\u0669|\u06F0|\u06F1|\u06F2|\u06F3' \
+        r'|\u06F4|\u06F5|\u06F6|\u06F7|\u06F8|\u06F9|0|1|2|3|4|5|6|7|8|9]+[\.][\u0660|\u0661|\u0662|\u0663|\u0664|\u0665|\u0666|\u0667|\u0668|\u0669|\u06F0|\u06F1|\u06F2|\u06F3' \
+        r'|\u06F4|\u06F5|\u06F6|\u06F7|\u06F8|\u06F9|0|1|2|3|4|5|6|7|8|9]+'
+        while (t.value[0] == '0' or t.value[0] == '\u0660' or t.value[0] == '\u06F0') and t.value[1] != '.':
+            t.value = t.value[1:len(t.value)]
+        while (t.value[len(t.value)-1] == '0' or t.value[len(t.value)-1] == '\u0660' or t.value[len(t.value)-1] == '\u06F0') and t.value[len(t.value)-2] != '.':
+            t.value = t.value[0:len(t.value)-1]
+        return t;
+
+    def t_NUMBER_INT(self, t):
+        r'[\u0660|\u0661|\u0662|\u0663|\u0664|\u0665|\u0666|\u0667|\u0668|\u0669|\u06F0|\u06F1|\u06F2|\u06F3' \
+        r'|\u06F4|\u06F5|\u06F6|\u06F7|\u06F8|\u06F9|0|1|2|3|4|5|6|7|8|9]+'
+        while (t.value[0] == '0' or t.value[0] == '\u0660' or t.value[0] == '\u06F0') and len(t.value) != 1:
+            t.value = t.value[1:len(t.value)]
+        return t
 
     def t_ID(self, t):
         r'[\u0622|\u0627|\u0628|\u067E|\u062A|\u062B|\u062C|\u0686|\u062D|\u062E|\u062F|\u0630|\u0631|\u0632' \
@@ -166,6 +185,7 @@ class Lexer:
                 self.sTable.append(t.value)
 
         return t
+
 
     def t_COMMENT(self, t):
         r'/\*([^*]|[\r\n]|(\*+([^*/]|[\r\n])))*\*+/|//.*'

@@ -3,7 +3,6 @@
 import ply.lex as lex
 
 
-
 class Lexer:
     tokens = (
         'FIXED_CHARACTER',
@@ -59,7 +58,7 @@ class Lexer:
         'DOT',
         'TRUE_KW',
         'FALSE_KW',
-        'MAIN',
+        # 'MAIN',
         'ID',
         'COMMENT',
         'NUMBER_INT',
@@ -74,7 +73,7 @@ class Lexer:
     adad = r'\u0660|\u0661|\u0662|\u0663|\u0664|\u0665|\u0666|\u0667|\u0668|\u0669|\u06F0|\u06F1|\u06F2|\u06F3' \
            r'|\u06F4|\u06F5|\u06F6|\u06F7|\u06F8|\u06F9|0|1|2|3|4|5|6|7|8|9'
     adadNoneZero = r'\u0661|\u0662|\u0663|\u0664|\u0665|\u0666|\u0667|\u0668|\u0669|\u06F1|\u06F2|\u06F3' \
-           r'|\u06F4|\u06F5|\u06F6|\u06F7|\u06F8|\u06F9|1|2|3|4|5|6|7|8|9'
+                   r'|\u06F4|\u06F5|\u06F6|\u06F7|\u06F8|\u06F9|1|2|3|4|5|6|7|8|9'
 
     semi_colon_farsi = r'\u061B'
     comma_farsi = r'\u060C'
@@ -108,7 +107,7 @@ class Lexer:
         'خلاف': 'NOT_KW',
         'درست': 'TRUE_KW',
         'غلط': 'FALSE_KW',
-        'اصلی': 'MAIN'
+        # 'اصلی': 'MAIN'
     }
 
     t_OPENING_BRACKET = r'\['
@@ -140,9 +139,16 @@ class Lexer:
 
     # t_ID = r'[آ-ی|\_][آ-ی|۰-۹|0-9['
     # t_ID = r'[' + harf + r'][' + harf + r'|' + adad + r']+'
-    t_NUMBER_INT = r'[' + adadNoneZero + r']' + r'[' + adad + r']*|(0|\u0660|\u06F0)'
+    # def t_NUMBER_INT(self, t):
+    #     r'[^\.][\u0660|\u0661|\u0662|\u0663|\u0664|\u0665|\u0666|\u0667|\u0668|\u0669|\u06F0|\u06F1|\u06F2|\u06F3' \
+    #        r'|\u06F4|\u06F5|\u06F6|\u06F7|\u06F8|\u06F9|0|1|2|3|4|5|6|7|8|9]+[^\.]'
+    #
+    #     while (t.value[0] == '0' or t.value[0] == '\u0660' or t.value[0] == '\u06F0') and len(t.value) > 1:
+    #         t.value = t.value[1:]
+    #
+    #     return t
+    t_NUMBER_INT = r'[' + adadNoneZero + r']' + r'[' + adad + r']*'
     t_NUMBER_FLOAT = r'(([' + adadNoneZero + r']' + r'[' + adad + r']*)|(0|\u0660|\u06F0))' + r'\.((0|\u0660|\u06F0)|' + r'([' + adad + r']*' + r'[' + adadNoneZero + r']))'
-
 
     t_FIXED_CHARACTER = r'\'\\.{1}\''
     t_ignore = ' \t'

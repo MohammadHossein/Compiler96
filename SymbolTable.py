@@ -1,0 +1,3 @@
+
+class SymbolTable:
+    pass

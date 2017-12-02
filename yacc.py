@@ -3,13 +3,23 @@ from ply import yacc
 import lex
 import logging
 
+from Entity import Entity
+from QuadRuple import QuadRuple
+
 
 def logger(log):
     print(log)
-
+    # pass
 
 class Yacc:
     tokens = lex.Lexer.tokens
+    quadRuples = []
+    symbolTable = lex.Lexer.sTable
+
+    c = 0
+    def newTemp(self):
+        self.c += 1
+        return 'Temp' + str(self.c)
 
     precedence = (
         ('left', 'OR_KW', 'THEN_OR_KW'),
@@ -292,6 +302,8 @@ class Yacc:
 
     def p_ebarat_8(self, p):
         """ebarat : ebarateSade"""
+        p[0] = Entity()
+        p[0].place = p[1].place
         logger('Rule 29.8 : ebarat -> ebarateSade')
 
     def p_ebarateSade_1(self, p):
@@ -316,10 +328,14 @@ class Yacc:
 
     def p_ebarateSade_6(self, p):
         """ebarateSade : ebarateRabetei"""
+        p[0] = Entity()
+        p[0].place = p[1].place
         logger('Rule 30.6 : ebarateSade -> ebarateRabetei')
 
     def p_ebarateRabetei_1(self, p):
         """ebarateRabetei : ebarateRiaziManteghi"""
+        p[0] = Entity()
+        p[0].place = p[1].place
         logger('Rule 31.1 : ebarateRabetei -> ebarateRiaziManteghi')
 
     def p_ebarateRabetei_2(self, p):
@@ -348,30 +364,46 @@ class Yacc:
 
     def p_ebarateRiaziManteghi_1(self, p):
         """ebarateRiaziManteghi : ebarateYegani"""
+        p[0] = Entity()
+        p[0].place = p[1].place
         logger('Rule 33.1 : ebarateRiaziManteghi -> ebarateYegani')
 
     def p_ebarateRiaziManteghi_2(self, p):
         """ebarateRiaziManteghi : ebarateRiaziManteghi amalgareRiazi ebarateRiaziManteghi"""
+        print(p[1])
+        p[0] = Entity()
+        p[0].place = self.newTemp()
+        self.quadRuples.append(QuadRuple(p[2].place,p[1].place,p[3].place,p[0].place))
         logger('Rule 33.2 : ebarateRiaziManteghi -> ebarateRiaziManteghi amalgareRiazi ebarateRiaziManteghi')
 
     def p_amalgareRiazi_1(self, p):
         """amalgareRiazi : MINUS"""
+        p[0] = Entity()
+        p[0].place = '-'
         logger('Rule 34.1 : amalgareRiazi -> -')
 
     def p_amalgareRiazi_2(self, p):
         """amalgareRiazi : MUL"""
+        p[0] = Entity()
+        p[0].place = '*'
         logger('Rule 34.2 : amalgareRiazi -> *')
 
     def p_amalgareRiazi_3(self, p):
         """amalgareRiazi : PLUS"""
+        p[0] = Entity()
+        p[0].place = '+'
         logger('Rule 34.3 : amalgareRiazi -> +')
 
     def p_amalgareRiazi_4(self, p):
         """amalgareRiazi : DIV"""
+        p[0] = Entity()
+        p[0].place = '/'
         logger('Rule 34.4 : amalgareRiazi -> /')
 
     def p_amalgareRiazi_5(self, p):
         """amalgareRiazi : MOD"""
+        p[0] = Entity()
+        p[0].place = '%'
         logger('Rule 34.5 : amalgareRiazi -> %')
 
     def p_ebarateYegani_1(self, p):
@@ -380,6 +412,8 @@ class Yacc:
 
     def p_ebarateYegani_2(self, p):
         """ebarateYegani : amel"""
+        p[0] = Entity()
+        p[0].place = p[1].place
         logger('Rule 35.2 : ebarateYegani -> amel')
 
     def p_amalgareYegani_1(self, p):
@@ -396,15 +430,21 @@ class Yacc:
 
     def p_amel_1(self, p):
         """amel : taghirpazir"""
+        p[0] = Entity()
+        p[0].palce = p[1].place
         logger('Rule 37.1 : amel -> taghirpazir')
 
     def p_amel_2(self, p):
         """amel : taghirnapazir"""
+        p[0]= Entity()
+        p[0].place = p[1].place
         logger('Rule 37.2 : amel -> taghirnapazir')
 
     def p_taghirpazir_1(self, p):
         """taghirpazir : ID"""
         logger('Rule 38.1 : taghirpazir -> ID')
+        p[0] = Entity()
+        p[0].place = p[1]
 
     def p_taghirpazir_2(self, p):
         """taghirpazir : taghirpazir OPENING_BRACKET ebarat CLOSING_BRACKET"""
@@ -416,6 +456,8 @@ class Yacc:
 
     def p_taghirnapazir_1(self, p):
         """taghirnapazir : OPENING_PARENTHESES ebarat CLOSING_PARENTHESES"""
+        p[0] = Entity()
+        p[0].place = p[2].place
         logger('Rule 39.1 : taghirnapazir -> (ebarat)')
 
     def p_taghirnapazir_2(self, p):
@@ -424,6 +466,8 @@ class Yacc:
 
     def p_taghirnapazir_3(self, p):
         """taghirnapazir : meghdareSabet"""
+        p[0] = Entity()
+        p[0].place = p[1].place
         logger('Rule 39.3 : taghirnapazir -> meghdareSabet')
 
     def p_sedaZadan(self, p):
@@ -449,22 +493,32 @@ class Yacc:
 
     def p_meghdareSabet_1(self, p):
         """meghdareSabet : NUMBER_INT"""
+        p[0] = Entity()
+        p[0].place = p[1]
         logger('Rule 43.1 : meghdareSabet -> NUMBER_INT')
 
     def p_meghdareSabet_2(self, p):
         """meghdareSabet : NUMBER_FLOAT"""
+        p[0] = Entity()
+        p[0].place = p[1]
         logger('Rule 43.2 : meghdareSabet -> NUMBER_FLOAT')
 
     def p_meghdareSabet_3(self, p):
         """meghdareSabet : FIXED_CHARACTER"""
+        p[0] = Entity()
+        p[0].place = p[1]
         logger('Rule 43.3 : meghdareSabet -> FIXED_CHARACTER')
 
     def p_meghdareSabet_4(self, p):
         """meghdareSabet : TRUE_KW"""
+        p[0] = Entity()
+        p[0].place = p[1]
         logger('Rule 43.4 : meghdareSabet -> TRUE_KW')
 
     def p_meghdareSabet_5(self, p):
         """meghdareSabet : FALSE_KW"""
+        p[0] = Entity()
+        p[0].place = p[1]
         logger('Rule 43.4 : meghdareSabet -> FALSE_KW')
 
     def p_error(self, p):

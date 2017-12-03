@@ -1,7 +1,7 @@
 class Entity:
-    true_list = []
-    false_list = []
-    next_list = []
+    trueList = []
+    falseList = []
+    nextList = []
     type = None
     place = None
     quad = 0
@@ -12,4 +12,10 @@ class Entity:
             quad.arg_one = target
 
     def __str__(self):
-        return self.place
+        s = ''
+        if self.trueList:
+            s += 'trueList : ' + self.trueList.__str__()
+        if self.falseList:
+            s += 'falseList : ' + self.trueList.__str__()
+        s += self.place
+        return s

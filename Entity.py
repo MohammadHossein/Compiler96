@@ -7,15 +7,17 @@ class Entity:
     quad = 0
 
     @staticmethod
-    def backpatch(quad_list, target):
-        for quad in quad_list:
-            quad.arg_one = target
+    def backpatch(indexes,quad_list, target):
+        print(quad_list, '-----------------------------------------')
+        for index in indexes:
+            quad_list[index].result += ' ' + str(target)
 
     def __str__(self):
-        s = ''
+        s = '++++++++\n'
         if self.trueList:
-            s += 'trueList : ' + self.trueList.__str__()
+            s += 'trueList : ' + self.trueList.__str__() + '\n'
         if self.falseList:
-            s += 'falseList : ' + self.trueList.__str__()
-        s += self.place
+            s += 'falseList : ' + self.falseList.__str__() + '\n'
+        s += str(self.place)
+        s += '\n+++++++'
         return s

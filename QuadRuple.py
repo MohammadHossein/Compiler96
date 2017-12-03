@@ -7,7 +7,8 @@ class QuadRuple:
 
     def __str__(self):
         # return str([self.op,self.arg_one,self.arg_two,self.result])
-        return 'op : ' + self.op + '\n' + \
-               'arg1 : ' + self.arg_one + '\n' + \
-               'arg2 : ' + self.arg_two + '\n' + \
-               'result : ' + self.result + '\n'
+        if 'goto' in self.result:
+            if self.arg_two == '':
+                return self.result
+            return 'if ( ' + self.arg_one + ' ' + self.op + ' ' + self.arg_two + ' ) ' + self.result
+        return self.result + ' = ' + self.arg_one + self.op + self.arg_two

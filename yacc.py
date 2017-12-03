@@ -1,3 +1,5 @@
+from operator import itemgetter
+
 from ply import yacc
 
 import lex
@@ -275,38 +277,39 @@ class Yacc:
 
     def p_ebarat_1(self, p):
         """ebarat : taghirpazir EXP ebarat"""
+        #TODO
         p[0] = Entity()
-        self.quadRuples.append(QuadRuple(p[2],p[3].place,'',p[1].place))
+        self.quadRuples.append(QuadRuple(p[2], p[3].place, '', p[1].place))
         logger('Rule 29.1 : ebarat -> taghirpazir = ebarat')
 
     def p_ebarat_2(self, p):
         """ebarat : taghirpazir PLUS_EXP ebarat"""
         p[0] = Entity()
-        self.quadRuples.append(QuadRuple('+',p[1].place,p[3].place,p[1].place))
+        self.quadRuples.append(QuadRuple('+', p[1].place, p[3].place, p[1].place))
         logger('Rule 29.2 : ebarat -> taghirpazir += ebarat')
 
     def p_ebarat_3(self, p):
         """ebarat : taghirpazir MINUS_EXP ebarat"""
         p[0] = Entity()
-        self.quadRuples.append(QuadRuple('-',p[1].place,p[3].place,p[1].place))
+        self.quadRuples.append(QuadRuple('-', p[1].place, p[3].place, p[1].place))
         logger('Rule 29.3 : ebarat -> taghirpazir -= ebarat')
 
     def p_ebarat_4(self, p):
         """ebarat : taghirpazir MUL_EXP ebarat"""
         p[0] = Entity()
-        self.quadRuples.append(QuadRuple('*',p[1].place,p[3].place,p[1].place))
+        self.quadRuples.append(QuadRuple('*', p[1].place, p[3].place, p[1].place))
         logger('Rule 29.4 : ebarat -> taghirpazir *= ebarat')
 
     def p_ebarat_5(self, p):
         """ebarat : taghirpazir DIV_EXP ebarat"""
         p[0] = Entity()
-        self.quadRuples.append(QuadRuple('/',p[1].place,p[3].place,p[1].place))
+        self.quadRuples.append(QuadRuple('/', p[1].place, p[3].place, p[1].place))
         logger('Rule 29.5 : ebarat -> taghirpazir /= ebarat')
 
     def p_ebarat_6(self, p):
         """ebarat : taghirpazir PLUSPLUS"""
         p[0] = Entity()
-        self.quadRuples.append(QuadRuple('+',p[1].place,'1',p[1].place))
+        self.quadRuples.append(QuadRuple('+', p[1].place, '1', p[1].place))
         logger('Rule 29.6 : ebarat -> taghirpazir ++')
 
     def p_ebarat_7(self, p):
@@ -319,6 +322,7 @@ class Yacc:
         """ebarat : ebarateSade"""
         p[0] = Entity()
         p[0].place = p[1].place
+        p[0].type = p[1].type
         logger('Rule 29.8 : ebarat -> ebarateSade')
 
     def p_ebarateSade_1(self, p):
@@ -348,6 +352,7 @@ class Yacc:
         """ebarateSade : ebarateRabetei"""
         p[0] = Entity()
         p[0].place = p[1].place
+        p[0].type = p[1].type
         logger('Rule 30.6 : ebarateSade -> ebarateRabetei')
 
     def p_ebarateRabetei_1(self, p):
@@ -360,10 +365,11 @@ class Yacc:
         """ebarateRabetei : ebarateRiaziManteghi amalgareRabetei ebarateRiaziManteghi"""
         p[0] = Entity()
         p[0].trueList.append(len(self.quadRuples))
-        p[0].falseList.append(len(self.quadRuples)+1)
-        self.quadRuples.append(QuadRuple(p[2].place,p[1].place,p[3].place,'goto'))
-        self.quadRuples.append(QuadRuple('','','','goto'))
-
+        p[0].falseList.append(len(self.quadRuples) + 1)
+        print(p[0], '************************')
+        self.quadRuples.append(QuadRuple(p[2].place, p[1].place, p[3].place, 'goto'))
+        self.quadRuples.append(QuadRuple('', '', '', 'goto'))
+        p[0].type = 'bool'
         logger('Rule 31.2 : ebarateRabetei -> ebarateRiaziManteghi amalgareRabetei ebarateRiaziManteghi')
 
     def p_amalgareRabetei_1(self, p):
@@ -400,13 +406,45 @@ class Yacc:
         """ebarateRiaziManteghi : ebarateYegani"""
         p[0] = Entity()
         p[0].place = p[1].place
+        p[0].type = p[1].type
         logger('Rule 33.1 : ebarateRiaziManteghi -> ebarateYegani')
 
     def p_ebarateRiaziManteghi_2(self, p):
         """ebarateRiaziManteghi : ebarateRiaziManteghi amalgareRiazi ebarateRiaziManteghi"""
         p[0] = Entity()
+        print(p[1].type, p[3].type, sep='-')
         p[0].place = self.newTemp()
-        self.quadRuples.append(QuadRuple(p[2].place, p[1].place, p[3].place, p[0].place))
+        if p[1].type == 'arith' and p[3].type == 'arith':
+            self.quadRuples.append(QuadRuple(p[2].place, p[1].place, p[3].place, p[0].place))
+        elif p[1].type == 'arith' and p[3].type == 'bool':
+            Entity.backpatch(p[3].trueList, self.quadRuples, len(self.quadRuples))
+            self.quadRuples.append(QuadRuple(p[2].place, p[1].place, '1', p[0].place))
+            self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(len(self.quadRuples) + 2)))
+            Entity.backpatch(p[3].falseList, self.quadRuples, len(self.quadRuples))
+            self.quadRuples.append(QuadRuple(p[2].place, p[1].place, '0', p[0].place))
+        elif p[1].type == 'bool' and p[3].type == 'arith':
+            Entity.backpatch(p[1].trueList, self.quadRuples, len(self.quadRuples))
+            self.quadRuples.append(QuadRuple(p[2].place, p[3].place, '1', p[0].place))
+            self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(len(self.quadRuples) + 2)))
+            Entity.backpatch(p[1].falseList, self.quadRuples, len(self.quadRuples))
+            self.quadRuples.append(QuadRuple(p[2].place, p[3].place, '0', p[0].place))
+        elif p[3].type == 'bool' and p[1].type == 'bool':
+            t1 = self.newTemp()
+            Entity.backpatch(p[1].trueList, self.quadRuples, len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('', '1', '', t1))
+            self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(len(self.quadRuples) + 2)))
+            Entity.backpatch(p[1].falseList, self.quadRuples, len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('', '0', '', t1))
+            self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(p[3].trueList[0])))
+            Entity.backpatch(p[3].trueList, self.quadRuples, len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('+', t1, '1', p[0].place))
+            self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(len(self.quadRuples) + 2)))
+            Entity.backpatch(p[3].falseList, self.quadRuples, len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('', t1, '', p[0].place))
+        else:
+            print('Ridiiiiiiiiiiiim')
+
+        p[0].type = 'arith'
         logger('Rule 33.2 : ebarateRiaziManteghi -> ebarateRiaziManteghi amalgareRiazi ebarateRiaziManteghi')
 
     def p_amalgareRiazi_1(self, p):
@@ -440,7 +478,7 @@ class Yacc:
         logger('Rule 34.5 : amalgareRiazi -> %')
 
     def p_ebarateYegani_1(self, p):
-        #TODO
+        # TODO
         """ebarateYegani : amalgareYegani ebarateYegani"""
         logger('Rule 35.1 : ebarateYegani -> amalgareYegani ebarateYegani')
 
@@ -448,6 +486,7 @@ class Yacc:
         """ebarateYegani : amel"""
         p[0] = Entity()
         p[0].place = p[1].place
+        p[0].type = p[1].type
         logger('Rule 35.2 : ebarateYegani -> amel')
 
     def p_amalgareYegani_1(self, p):
@@ -472,6 +511,7 @@ class Yacc:
         """amel : taghirnapazir"""
         p[0] = Entity()
         p[0].place = p[1].place
+        p[0].type = p[1].type
         logger('Rule 37.2 : amel -> taghirnapazir')
 
     def p_taghirpazir_1(self, p):
@@ -481,7 +521,7 @@ class Yacc:
         p[0].place = p[1]
 
     def p_taghirpazir_2(self, p):
-        #TODO
+        # TODO
         """taghirpazir : taghirpazir OPENING_BRACKET ebarat CLOSING_BRACKET"""
         logger('Rule 38.2 : taghirpazir -> taghirpazir [ ebarat ]')
 
@@ -493,6 +533,7 @@ class Yacc:
         """taghirnapazir : OPENING_PARENTHESES ebarat CLOSING_PARENTHESES"""
         p[0] = Entity()
         p[0].place = p[2].place
+        p[0].type = p[2].type
         logger('Rule 39.1 : taghirnapazir -> (ebarat)')
 
     def p_taghirnapazir_2(self, p):
@@ -503,6 +544,7 @@ class Yacc:
         """taghirnapazir : meghdareSabet"""
         p[0] = Entity()
         p[0].place = p[1].place
+        p[0].type = 'arith'
         logger('Rule 39.3 : taghirnapazir -> meghdareSabet')
 
     def p_sedaZadan(self, p):
@@ -510,7 +552,7 @@ class Yacc:
         logger('Rule 40 : sedaZadan -> ID ( bordareVorudi )')
 
     def p_bordareVorudi_1(self, p):
-        #TODO
+        # TODO
         """bordareVorudi : bordareVorudiha"""
         logger('Rule 41.1 : bordareVorudi -> bordareVorudiha')
 

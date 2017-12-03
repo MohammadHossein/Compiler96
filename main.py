@@ -25,6 +25,8 @@ if __name__ == '__main__':
     '''
     y = Yacc()
     y.build().parse(data, Lexer().build(),False)
-
+    print('---------------------------------------------------------')
+    i = 0
     for x in y.quadRuples:
-        print(x)
+        print(i,x)
+        i+=1

@@ -35,7 +35,7 @@ class Yacc:
         ('left', 'MOD'),
         ('left', 'MUL', 'DIV'),
         ('right', 'NOT_KW', 'MINUSMINUS', 'PLUSPLUS'),
-        ('nonassoc','ELSE_KW')
+        ('nonassoc', 'ELSE_KW')
     )
 
     def p_barnameh(self, p):
@@ -352,14 +352,42 @@ class Yacc:
         elif p[1].type == 'bool' and p[4].type == 'arith':
             temp = Entity()
             temp.trueList.append(len(self.quadRuples))
-            self.quadRuples.append(QuadRuple('>',p[4].place,'0','goto'))    # TODO - chekc shavad ke > bozorgtar ast ya kuchektar
+            self.quadRuples.append(
+                QuadRuple('>', p[4].place, '0', 'goto'))  # TODO - chekc shavad ke > bozorgtar ast ya kuchektar
             temp.falseList.append(len(self.quadRuples))
-            self.quadRuples.append(QuadRuple('','','','goto'))
+            self.quadRuples.append(QuadRuple('', '', '', 'goto'))
             p[0].trueList = p[1].trueList + [len(self.quadRuples)]
             Entity.backpatch(p[1].falseList, self.quadRuples, p[3].quad)
             p[0].trueList = p[1].trueList + temp.trueList
             p[0].falseList = temp.falseList
             p[0].type = 'bool'
+        elif p[1].type == 'arith' and p[4].type == 'bool':
+            temp = Entity()
+            temp.trueList.append(len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('>',p[1].place,'0','goto'))
+            temp.falseList.append(len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('','','','goto'))
+            Entity.backpatch(temp.falseList,self.quadRuples,p[3].quad)
+            p[0].trueList = temp.trueList + p[4].trueList
+            p[0].falseList = p[4].falseList
+            p[0].type = 'bool'
+        elif p[1].type == 'arith' and p[4].type == 'arith':
+            temp1 = Entity()
+            temp1.trueList.append(len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('>', p[1].place, '0', 'goto'))
+            temp1.falseList.append(len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('', '', '', 'goto'))
+            temp2 = Entity()
+            temp2.trueList.append(len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('>', p[4].place, '0', 'goto'))
+            temp2.falseList.append(len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('', '', '', 'goto'))
+            Entity.backpatch(temp1.falseList, self.quadRuples, temp2.trueList[0])
+            p[0].trueList = temp1.trueList + temp2.trueList
+            p[0].falseList = temp2.falseList
+            p[0].type = 'bool'
+        else:
+            print('Ridiiiiiiiiiiiiiiiiiim!!')
 
         logger(p, 'Rule 30.3 : ebarateSade -> ebarateSade یا ebarateSade')
 

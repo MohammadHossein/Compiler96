@@ -537,7 +537,11 @@ class Yacc:
 
     def p_ebarateYegani_1(self, p):
         # TODO
-        """ebarateYegani : amalgareYegani ebarateYegani"""
+        """ebarateYegani : amalgareYegani ebarateYegani
+        """
+        p[0] = Entity()
+        p[0].type = 'arith'
+        p[0].place = p[1].place + p[2].place
         logger(p, 'Rule 35.1 : ebarateYegani -> amalgareYegani ebarateYegani')
 
     def p_ebarateYegani_2(self, p):
@@ -547,6 +551,8 @@ class Yacc:
 
     def p_amalgareYegani_1(self, p):
         """amalgareYegani : MINUS"""
+        p[0] = Entity()
+        p[0].place = '-'
         logger(p, 'Rule 36.1 : amalgareYegani -> -')
 
     def p_amalgareYegani_2(self, p):

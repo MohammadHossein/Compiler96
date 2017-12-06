@@ -289,7 +289,7 @@ class Yacc:
             self.quadRuples.append(QuadRuple('', '', '', 'goto' + str(len(self.quadRuples) + 2)))
             Entity.backpatch(p[3].falseList, self.quadRuples, len(self.quadRuples))
             self.quadRuples.append(QuadRuple('', '0', '', p[1].place))
-        p[0].type = p[3].type
+        p[0].type = 'arith'
         p[0].place = p[1].place
         logger(p, 'Rule 29.1 : ebarat -> taghirpazir = ebarat')
 
@@ -393,45 +393,49 @@ class Yacc:
         logger(p, 'Rule 30.3 : ebarateSade -> ebarateSade یا ebarateSade')
 
     def p_ebarateSade_4(self, p):
-        """ebarateSade : ebarateSade AND_KW empty ebarateSade"""
+        """ebarateSade : ebarateSade m AND_KW empty ebarateSade m"""
         p[0] = Entity()
-        if p[1].type == 'bool' and p[4].type == 'bool':
-            Entity.backpatch(p[1].trueList, self.quadRuples, p[3].quad)
-            p[0].trueList = p[4].trueList
-            p[0].falseList = p[1].falseList + p[4].falseList
+        if p[1].type == 'bool' and p[5].type == 'bool':
+            Entity.backpatch(p[1].trueList, self.quadRuples, p[4].quad)
+            p[0].trueList = p[5].trueList
+            p[0].falseList = p[1].falseList + p[5].falseList
             p[0].type = 'bool'
-        elif p[1].type == 'bool' and p[4].type == 'arith':
+        elif p[1].type == 'bool' and p[5].type == 'arith':
             temp = Entity()
             temp.trueList.append(len(self.quadRuples))
-            self.quadRuples.append(QuadRuple('>', p[4].place, '0', 'goto'))
+            self.quadRuples.append(QuadRuple('>', p[5].place, '0', 'goto'))
             temp.falseList.append(len(self.quadRuples))
             self.quadRuples.append(QuadRuple('', '', '', 'goto'))
-            Entity.backpatch(p[1].trueList, self.quadRuples, p[3].quad)
+            Entity.backpatch(p[1].trueList, self.quadRuples, p[4].quad)
+            Entity.backpatch([p[6].quad], self.quadRuples, p[6].quad+1)
             p[0].trueList = temp.trueList
             p[0].falseList = p[1].falseList + temp.falseList
             p[0].type = 'bool'
-        elif p[1].type == 'arith' and p[4].type == 'bool':
+        elif p[1].type == 'arith' and p[5].type == 'bool':
             temp = Entity()
             temp.trueList.append(len(self.quadRuples))
             self.quadRuples.append(QuadRuple('>', p[1].place, '0', 'goto'))
             temp.falseList.append(len(self.quadRuples))
             self.quadRuples.append(QuadRuple('', '', '', 'goto'))
-            Entity.backpatch(temp.trueList, self.quadRuples, p[3].quad)
-            p[0].trueList = p[4].trueList
-            p[0].falseList = temp.falseList + p[4].falseList
+            Entity.backpatch([p[2].quad], self.quadRuples, len(self.quadRuples)-2)
+            Entity.backpatch(temp.trueList, self.quadRuples, p[4].quad)
+            p[0].trueList = p[5].trueList
+            p[0].falseList = temp.falseList + p[5].falseList
             p[0].type = 'bool'
-        elif p[1].type == 'arith' and p[4].type == 'arith':
+        elif p[1].type == 'arith' and p[5].type == 'arith':
             temp1 = Entity()
+            Entity.backpatch([p[2].quad], self.quadRuples, len(self.quadRuples))
             temp1.trueList.append(len(self.quadRuples))
             self.quadRuples.append(QuadRuple('>', p[1].place, '0', 'goto'))
             temp1.falseList.append(len(self.quadRuples))
             self.quadRuples.append(QuadRuple('', '', '', 'goto'))
             temp2 = Entity()
+            Entity.backpatch([p[6].quad], self.quadRuples, len(self.quadRuples))
             temp2.trueList.append(len(self.quadRuples))
-            self.quadRuples.append(QuadRuple('>', p[4].place, '0', 'goto'))
+            self.quadRuples.append(QuadRuple('>', p[5].place, '0', 'goto'))
             temp2.falseList.append(len(self.quadRuples))
             self.quadRuples.append(QuadRuple('', '', '', 'goto'))
-            Entity.backpatch(temp1.trueList, self.quadRuples, temp2.trueList[0])
+            Entity.backpatch(temp1.trueList, self.quadRuples, p[2].quad + 1)
             p[0].trueList = temp2.trueList
             p[0].falseList = temp1.falseList + temp2.falseList
             p[0].type = 'bool'

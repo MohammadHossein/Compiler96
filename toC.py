@@ -1,15 +1,24 @@
 from os import system
 
+from copy import deepcopy
+
+from QuadRuple import QuadRuple
+
 
 class toC:
-    def __init__(self, quadRuples=[], ids=[], temps={}):
+    def __init__(self, quadRuples=[], temps={},symbolTable={}):
         self.C = []
         self.quadRuples = quadRuples
+        self.symbolTable = symbolTable
+        self.labels = set()
+        for quadRuple in self.quadRuples:
+            if 'goto' in quadRuple.result:
+                self.labels.add(quadRuple.result.split()[1])
+        ids = deepcopy(symbolTable)
         self.ids = {}
-        ids.remove('اصلی')
-        number = 1
-        for id in ids:
-            self.ids[id] = 'ID' + str(number)
+        number = 0
+        for id in ids.keys():
+            self.ids[id] = ('ID' + str(number),ids[id])
             number += 1
         self.temps = temps
 
@@ -21,31 +30,58 @@ class toC:
         with open('outFile.c', 'w') as output:
             output.write('#include<stdio.h>\n#include<stdlib.h>\n')
             output.write('int main(){\n')
+            lineNumber = 0
             for quadRuple in self.quadRuples:
                 code = ''
                 if quadRuple.result in self.temps.keys():
                     if quadRuple.result not in define:
-                        print('==========')
-                        print(quadRuple)
-                        print(self.temps[quadRuple.result])
                         code += self.temps[quadRuple.result] + ' ' + quadRuple.result + ';\n'
+                        define.append(quadRuple.result)
+                    if str(lineNumber) in self.labels:
+                        code += 'L' + str(lineNumber) + ':\n'
+                        self.labels.remove(str(lineNumber))
                     code += str(quadRuple) + ';\n'
                 elif quadRuple.result in self.ids.keys():
-                    quadRuple.result = self.ids[quadRuple.result]
+                    if self.ids[quadRuple.result][0] not in define:
+                        code += self.ids[quadRuple.result][1] + ' ' + self.ids[quadRuple.result][0] + ';\n'
+                        define.append(self.ids[quadRuple.result][0])
+                    if str(lineNumber) in self.labels:
+                        code += 'L' + str(lineNumber) + ':\n'
+                        self.labels.remove(str(lineNumber))
+                    quadRuple.result = self.ids[quadRuple.result][0]
                     code += str(quadRuple) + ';\n'
                 elif 'goto' in quadRuple.result:
+                    if str(lineNumber) in self.labels:
+                        code += 'L' + str(lineNumber) + ':\n'
+                        self.labels.remove(str(lineNumber))
                     if quadRuple.arg_two == '':
-                        code += quadRuple.result + ';\n'
+                        code += 'goto L' + quadRuple.result.split()[1] + ';\n'
                     else:
-                        code += 'if ( ' + quadRuple.arg_one + ' ' + quadRuple.op + ' ' + quadRuple.arg_two + ' ) ' + quadRuple.result + ';\n'
+                        code += 'if ( ' + quadRuple.arg_one + ' ' + quadRuple.op + ' ' + quadRuple.arg_two + ' ) \n'\
+                                + '\t' + 'goto L' + quadRuple.result.split()[1] + ';\n'
 
                 output.write(code)
+                lineNumber += 1
+            for label in self.labels:
+                output.write('L' + label + ':\n')
+            for id in self.ids.keys():
+                type = self.ids[id][1]
+                ID = self.ids[id][0]
+                if type == 'int':
+                    output.write('printf("%d\\n",' + ID + ');\n')
+                if type == 'float':
+                    output.write('printf("%f\\n",' + ID + ');\n')
+                if type == 'char':
+                    output.write('printf("%c\\n",' + ID + ');\n')
+                if type == 'bool':
+                    output.write('printf("%d\\n",' + ID + ');\n')
+
             output.write('printf("Hello World!\\n");\n')
             output.write('return 0;\n')
             output.write('}')
 
     def run(self):
-        # print('=======================================')
+        print('=======================================')
         print('Compiling...')
         if system('gcc outFile.c -o executable.out') == 0:
             print('Running...\n\n')

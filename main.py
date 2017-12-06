@@ -1,6 +1,7 @@
 import codecs
 import logging
 
+import SymbolTable
 from lex import Lexer
 from toC import toC
 from yacc import Yacc
@@ -26,13 +27,13 @@ if __name__ == '__main__':
     '''
     y = Yacc()
     lexer = Lexer()
-    y.build().parse(data, lexer.build(),False)
+    # SymbolTable.SymbolTable.sTable = lexer.sTable
+    y.build().parse(data, lexer.build(), False)
     print('---------------------------------------------------------')
     i = 0
     for x in y.quadRuples:
-        print(i,x)
-        i+=1
-    print(lexer.sTable)
-    c = toC(y.quadRuples,lexer.sTable,y.temps)
+        print(i, x)
+        i += 1
+    c = toC(y.quadRuples, y.temps, y.symbolTable)
     c.save()
-    # c.run()
+    c.run()

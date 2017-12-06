@@ -1,4 +1,5 @@
 from operator import itemgetter
+from tabnanny import errprint
 
 from ply import yacc
 
@@ -18,13 +19,12 @@ def logger(p, log):
 class Yacc:
     tokens = lex.Lexer.tokens
     quadRuples = []
-    symbolTable = lex.Lexer.sTable
+    symbolTable = {}
     temps = {}
     c = 0
 
-    def getType(self,type1,type2):
-        #TODO type ebarat yegani
-        print(type1,type2,'------------')
+    def getType(self, type1, type2):
+        # TODO type ebarat yegani
         tempType = None
         if type1 == 'float' or type2 == 'float':
             tempType = 'float'
@@ -38,11 +38,18 @@ class Yacc:
             print('Ridam in type')
         return tempType
 
-    def newTemp(self,type):
+    def newTemp(self, type):
         self.c += 1
         temp = 'Temp' + str(self.c)
         self.temps[temp] = type
         return temp
+
+    def lookup(self, ID):
+        try:
+            return self.symbolTable[ID]
+        except:
+            errprint('متفیر \"' + ID + '\" تعریف نشده است!')
+            exit(1)
 
     precedence = (
         ('left', 'OR_KW', 'THEN_OR_KW'),
@@ -96,50 +103,70 @@ class Yacc:
 
     def p_tarifeMotheghayyereMahdud(self, p):
         """tarifeMotheghayyereMahdud : jenseMahdud tarifhayeMotheghayyerha SEMICOLON"""
+        for ID in p[2].trueList:
+            self.symbolTable[ID] = p[1].kind
         logger(p, 'Rule 6 : tarifeMotheghayyereMahdud -> jenseMahdud tarifhayeMotheghayyerha ;')
 
     def p_jenseMahdud(self, p):
         """jenseMahdud : CONSTANT_KW jens
                         | jens
         """
+
         if len(p) == 3:
+            p[0] = p[2]
             logger(p, 'Rule 7.1 : jenseMahdud -> ثابت jens')
+
         elif len(p) == 2:
+            p[0] = p[1]
             logger(p, 'Rule 7.2 : jenseMahdud -> jens')
 
     def p_jens_1(self, p):
         """jens : INTEGER_KW"""
+        p[0] = Entity()
+        p[0].kind = 'int'
         logger(p, 'Rule 8.1 : jens -> صحیح')
 
     def p_jens_2(self, p):
         """jens : FLOAT_KW"""
+        p[0] = Entity()
+        p[0].kind = 'float'
         logger(p, 'Rule 8.2 : jens -> اعشاری')
 
     def p_jens_3(self, p):
         """jens : BOOLEAN_KW"""
+        p[0] = Entity()
+        p[0].kind = 'bool'
         logger(p, 'Rule 8.3 : jens -> منطقی')
 
     def p_jens_4(self, p):
         """jens : CHAR_KW"""
+        p[0] = Entity()
+        p[0].kind = 'char'
         logger(p, 'Rule 8.4 : jens -> حرف')
 
     def p_tarifeMotheghayyer(self, p):
         """tarifeMotheghayyer : jens tarifhayeMotheghayyerha SEMICOLON"""
+        for ID in p[2].trueList:
+            self.symbolTable[ID] = p[1].kind
         logger(p, 'Rule 9 : tarifeMotheghayyer -> jens tarifhayeMotheghayyerha ;')
 
     def p_tarifhayeMotegayyerha(self, p):
         """tarifhayeMotheghayyerha : tarifeMeghdareAvvalie
                                 |   tarifhayeMotheghayyerha COMMA tarifeMeghdareAvvalie
         """
+        p[0] = Entity()
         if len(p) == 2:
             logger(p, 'Rule 10.1 : tarifhayeMotheghayyerha -> tarifeMeghdareAvvalie')
+            p[0].trueList.append(p[1].place)
         elif len(p) == 4:
+            p[0].trueList = p[1].trueList + [p[3].place]
             logger(p, 'Rule 10.2 : tarifhayeMotheghayyerha -> tarifhayeMotheghayyerha , tarifeMeghdareAvvalie')
 
     def p_tarifeMeghdareAvvalie(self, p):
         """tarifeMeghdareAvvalie : tarifeShenaseyeMoteghayyer
                                 |  tarifeShenaseyeMoteghayyer EXP ebarateSade
         """
+        p[0] = p[1]
         if len(p) == 2:
             logger(p, 'Rule 11.1 : tarifeMeghdareAvvalie -> tarifeShenaseyeMoteghayyer')
         elif len(p) == 4:
@@ -149,6 +176,8 @@ class Yacc:
         """tarifeShenaseyeMoteghayyer : ID
                                 | ID OPENING_BRACKET NUMBER_INT CLOSING_BRACKET
         """
+        p[0] = Entity()
+        p[0].place = p[1]
         if len(p) == 2:
             logger(p, 'Rule 12.1 : tarifeShenaseyeMoteghayyer -> ID')
         elif len(p) == 5:
@@ -304,7 +333,7 @@ class Yacc:
         elif p[3].type == 'bool':
             Entity.backpatch(p[3].trueList, self.quadRuples, len(self.quadRuples))
             self.quadRuples.append(QuadRuple('', '1', '', p[1].place))
-            self.quadRuples.append(QuadRuple('', '', '', 'goto' + str(len(self.quadRuples) + 2)))
+            self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(len(self.quadRuples) + 2)))
             Entity.backpatch(p[3].falseList, self.quadRuples, len(self.quadRuples))
             self.quadRuples.append(QuadRuple('', '0', '', p[1].place))
         p[0].type = p[3].type
@@ -479,10 +508,10 @@ class Yacc:
         p[0] = Entity()
         p[0].trueList.append(len(self.quadRuples))
         p[0].falseList.append(len(self.quadRuples) + 1)
-        print(p[0])
         self.quadRuples.append(QuadRuple(p[2].place, p[1].place, p[3].place, 'goto'))
         self.quadRuples.append(QuadRuple('', '', '', 'goto'))
         p[0].type = 'bool'
+        p[0].kind= self.getType(p[1].kind,p[3].kind)
         logger(p, 'Rule 31.2 : ebarateRabetei -> ebarateRiaziManteghi amalgareRabetei ebarateRiaziManteghi')
 
     def p_amalgareRabetei_1(self, p):
@@ -528,27 +557,26 @@ class Yacc:
                                 | ebarateRiaziManteghi DIV ebarateRiaziManteghi
                                 | ebarateRiaziManteghi MOD ebarateRiaziManteghi """
         p[0] = Entity()
-        print(p[1], p[3], sep='\n')
         if p[1].type == 'arith' and p[3].type == 'arith':
-            p[0].place = self.newTemp(self.getType(p[1].kind,p[3].kind))
+            p[0].place = self.newTemp(self.getType(p[1].kind, p[3].kind))
             self.quadRuples.append(QuadRuple(p[2], p[1].place, p[3].place, p[0].place))
         elif p[1].type == 'arith' and p[3].type == 'bool':
-            p[0].place = self.newTemp(self.getType(p[1].kind,p[3].kind))
+            p[0].place = self.newTemp(self.getType(p[1].kind, p[3].kind))
             Entity.backpatch(p[3].trueList, self.quadRuples, len(self.quadRuples))
             self.quadRuples.append(QuadRuple(p[2], p[1].place, '1', p[0].place))
             self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(len(self.quadRuples) + 2)))
             Entity.backpatch(p[3].falseList, self.quadRuples, len(self.quadRuples))
             self.quadRuples.append(QuadRuple(p[2], p[1].place, '0', p[0].place))
         elif p[1].type == 'bool' and p[3].type == 'arith':
-            p[0].place = self.newTemp(self.getType(p[1].kind,p[3].kind))
+            p[0].place = self.newTemp(self.getType(p[1].kind, p[3].kind))
             Entity.backpatch(p[1].trueList, self.quadRuples, len(self.quadRuples))
             self.quadRuples.append(QuadRuple(p[2], p[3].place, '1', p[0].place))
             self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(len(self.quadRuples) + 2)))
             Entity.backpatch(p[1].falseList, self.quadRuples, len(self.quadRuples))
             self.quadRuples.append(QuadRuple(p[2], p[3].place, '0', p[0].place))
         elif p[3].type == 'bool' and p[1].type == 'bool':
-            p[0].place = self.newTemp(self.getType(p[1].kind,p[3].kind))
-            t1 = self.newTemp(self.getType(p[1].kind,p[3].kind))
+            p[0].place = self.newTemp(self.getType(p[1].kind, p[3].kind))
+            t1 = self.newTemp(self.getType(p[1].kind, p[3].kind))
             Entity.backpatch(p[1].trueList, self.quadRuples, len(self.quadRuples))
             self.quadRuples.append(QuadRuple('', '1', '', t1))
             self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(len(self.quadRuples) + 2)))
@@ -563,6 +591,7 @@ class Yacc:
         else:
             print('Ridiiiiiiiiiiiim')
 
+        p[0].kind = self.getType(p[1].kind, p[3].kind)
         p[0].type = 'arith'
         logger(p, 'Rule 33.2 : ebarateRiaziManteghi -> ebarateRiaziManteghi amalgareRiazi ebarateRiaziManteghi')
 
@@ -611,6 +640,7 @@ class Yacc:
         logger(p, 'Rule 38.1 : taghirpazir -> ID')
         p[0] = Entity()
         p[0].place = p[1]
+        p[0].kind = self.lookup(p[1])
 
     def p_taghirpazir_2(self, p):
         # TODO

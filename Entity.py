@@ -5,6 +5,7 @@ class Entity:
         self.nextList = []
         self.type = None
         self.place = None
+        self.kind = None
         self.quad = 0
 
     @staticmethod

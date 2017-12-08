@@ -15,7 +15,8 @@ class toC:
         self.labels = set()
         for quadRuple in self.quadRuples:
             if 'goto' in quadRuple.result:
-                self.labels.add(quadRuple.result.split()[1])
+                if len(quadRuple.result.split()) > 1:
+                    self.labels.add(quadRuple.result.split()[1])
         ids = deepcopy(symbolTable)
         self.ids = {}
         number = 0
@@ -79,11 +80,13 @@ class toC:
                     code += str(quadRuple) + ';\n'
                 elif 'goto' in quadRuple.result:
                     code += self.addLabel(lineNumber)
-                    if quadRuple.arg_two == '':
-                        code += 'goto L' + quadRuple.result.split()[1] + ';\n'
-                    else:
-                        code += 'if ( ' + self.toEnglish(quadRuple.arg_one) + ' ' + quadRuple.op + ' ' + self.toEnglish(quadRuple.arg_two) + ' ) \n' \
-                                + '\t' + 'goto L' + quadRuple.result.split()[1] + ';\n'
+                    if len(quadRuple.result.split()) > 1:
+                        if quadRuple.arg_two == '':
+                            code += 'goto L' + quadRuple.result.split()[1] + ';\n'
+                        else:
+                            code += 'if ( ' + self.toEnglish(quadRuple.arg_one) + ' ' + quadRuple.op + ' ' + self.toEnglish(
+                                quadRuple.arg_two) + ' ) \n' \
+                                    + '\t' + 'goto L' + quadRuple.result.split()[1] + ';\n'
 
                 output.write(code)
                 lineNumber += 1

@@ -1,3 +1,5 @@
+from tabnanny import errprint
+
 
 class SymbolTable:
-    pass
+    sTable = None

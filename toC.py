@@ -20,6 +20,12 @@ class toC:
         for id in ids.keys():
             self.ids[id] = ('ID' + str(number),ids[id])
             number += 1
+        # print IDS
+        print('------------IDs---------------\n')
+        for key,value in self.ids.items():
+            print('{:1} {:<20}'.format(key,value[0]))
+
+
         self.temps = temps
 
     def toC(self):
@@ -41,6 +47,10 @@ class toC:
                         code += 'L' + str(lineNumber) + ':\n'
                         self.labels.remove(str(lineNumber))
                     code += str(quadRuple) + ';\n'
+                    if quadRuple.arg_one in self.ids.keys():
+                        quadRuple.arg_one = self.ids[quadRuple.arg_one][0]
+                    if quadRuple.arg_two in self.ids.keys():
+                        quadRuple.arg_two = self.ids[quadRuple.arg_two][0]
                 elif quadRuple.result in self.ids.keys():
                     if self.ids[quadRuple.result][0] not in define:
                         code += self.ids[quadRuple.result][1] + ' ' + self.ids[quadRuple.result][0] + ';\n'
@@ -49,6 +59,10 @@ class toC:
                         code += 'L' + str(lineNumber) + ':\n'
                         self.labels.remove(str(lineNumber))
                     quadRuple.result = self.ids[quadRuple.result][0]
+                    if quadRuple.arg_one in self.ids.keys():
+                        quadRuple.arg_one = self.ids[quadRuple.arg_one][0]
+                    if quadRuple.arg_two in self.ids.keys():
+                        quadRuple.arg_two = self.ids[quadRuple.arg_two][0]
                     code += str(quadRuple) + ';\n'
                 elif 'goto' in quadRuple.result:
                     if str(lineNumber) in self.labels:

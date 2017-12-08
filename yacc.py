@@ -170,6 +170,17 @@ class Yacc:
         if len(p) == 2:
             logger(p, 'Rule 11.1 : tarifeMeghdareAvvalie -> tarifeShenaseyeMoteghayyer')
         elif len(p) == 4:
+            p[0] = Entity()
+            if p[3].type == 'arith':
+                self.quadRuples.append(QuadRuple('', p[3].place, '', p[1].place))
+            elif p[3].type == 'bool':
+                Entity.backpatch(p[3].trueList, self.quadRuples, len(self.quadRuples))
+                self.quadRuples.append(QuadRuple('', '1', '', p[1].place))
+                self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(len(self.quadRuples) + 2)))
+                Entity.backpatch(p[3].falseList, self.quadRuples, len(self.quadRuples))
+                self.quadRuples.append(QuadRuple('', '0', '', p[1].place))
+            p[0].type = p[3].type
+            p[0].place = p[1].place
             logger(p, 'Rule 11.2 : tarifeMeghdareAvvalie -> tarifeShenaseyeMoteghayyer EXP ebarateSade')
 
     def p_tarifeShenaseyeMoteghayyer(self, p):
@@ -326,7 +337,7 @@ class Yacc:
 
     def p_ebarat_1(self, p):
         """ebarat : taghirpazir EXP ebarat"""
-        # TODO
+        # TODO Characters
         p[0] = Entity()
         if p[3].type == 'arith':
             self.quadRuples.append(QuadRuple('', p[3].place, '', p[1].place))
@@ -389,7 +400,7 @@ class Yacc:
         """ebarateSade : ebarateSade THEN_AND_KW ebarateSade"""
         logger(p, 'Rule 30.2 : ebarateSade -> ebarateSade وهمچنین ebarateSade')
 
-    def p_ebarateSade_3(self, p):  # TODO
+    def p_ebarateSade_3(self, p):  # TODO ebarat arith bool
         """ebarateSade : ebarateSade OR_KW empty ebarateSade"""  # M -> empty added
         p[0] = Entity()
         if p[1].type == 'bool' and p[4].type == 'bool':
@@ -556,6 +567,7 @@ class Yacc:
                                 | ebarateRiaziManteghi MUL ebarateRiaziManteghi
                                 | ebarateRiaziManteghi DIV ebarateRiaziManteghi
                                 | ebarateRiaziManteghi MOD ebarateRiaziManteghi """
+        #TODO Characters
         p[0] = Entity()
         if p[1].type == 'arith' and p[3].type == 'arith':
             p[0].place = self.newTemp(self.getType(p[1].kind, p[3].kind))
@@ -596,7 +608,7 @@ class Yacc:
         logger(p, 'Rule 33.2 : ebarateRiaziManteghi -> ebarateRiaziManteghi amalgareRiazi ebarateRiaziManteghi')
 
     def p_ebarateYegani_1(self, p):
-        # TODO
+        # TODO amalgar yegani
         """ebarateYegani : amalgareYegani ebarateYegani
         """
         if p[1].place == '-':
@@ -643,7 +655,7 @@ class Yacc:
         p[0].kind = self.lookup(p[1])
 
     def p_taghirpazir_2(self, p):
-        # TODO
+        # TODO Array
         """taghirpazir : taghirpazir OPENING_BRACKET ebarat CLOSING_BRACKET"""
         logger(p, 'Rule 38.2 : taghirpazir -> taghirpazir [ ebarat ]')
 
@@ -663,6 +675,10 @@ class Yacc:
     def p_taghirnapazir_3(self, p):
         """taghirnapazir : meghdareSabet"""
         p[0] = p[1]
+        # TODO type constant
+        # if p[1].kind == 'bool':
+        #     p[0].type = 'bool'
+        # else:
         p[0].type = 'arith'
         logger(p, 'Rule 39.3 : taghirnapazir -> meghdareSabet')
 
@@ -671,7 +687,6 @@ class Yacc:
         logger(p, 'Rule 40 : sedaZadan -> ID ( bordareVorudi )')
 
     def p_bordareVorudi_1(self, p):
-        # TODO
         """bordareVorudi : bordareVorudiha"""
         logger(p, 'Rule 41.1 : bordareVorudi -> bordareVorudiha')
 
@@ -712,14 +727,14 @@ class Yacc:
     def p_meghdareSabet_4(self, p):
         """meghdareSabet : TRUE_KW"""
         p[0] = Entity()
-        p[0].place = p[1]
+        p[0].place = '1'
         p[0].kind = 'bool'
         logger(p, 'Rule 43.4 : meghdareSabet -> TRUE_KW')
 
     def p_meghdareSabet_5(self, p):
         """meghdareSabet : FALSE_KW"""
         p[0] = Entity()
-        p[0].place = p[1]
+        p[0].place = '0'
         p[0].kind = 'bool'
         logger(p, 'Rule 43.4 : meghdareSabet -> FALSE_KW')
 

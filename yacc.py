@@ -11,8 +11,8 @@ from QuadRuple import QuadRuple
 
 
 def logger(p, log):
-    # print(log, [str(x) for x in p], sep='\t')
-    print(log)
+    print(log, [str(x).replace('\\n', '') for x in p], sep='\t')
+    # print(log)
     # pass
 
 
@@ -22,17 +22,24 @@ class Yacc:
     symbolTable = {}
     temps = {}
     c = 0
+    chars = {
+        'آ': 'a', 'ا': 'a', 'ب': 'b', 'پ': 'p', 'ت': 't', 'ث': 's', 'ج': 'j', 'چ': 'c', 'ح': 'h', 'خ': 'k', 'د': 'd',
+        'ذ': 'z', 'ر': 'r', 'ز': 'z', 'ژ': 'x', 'س': 'S', 'ش': 's', 'ص': 's', 'ض': 'z', 'ط': 't', 'ظ': 'z',
+        'ع': 'e', 'غ': 'g', 'ف': 'f', 'ق': 'g', 'ك': 'k', 'گ': 'g', 'ل': 'l', 'م': 'm', 'ن': 'n', 'ه': 'h',
+        'و': 'v', 'ى': 'y', 'ک': 'k', 'ي': 'y', 'ی': 'y', 'ھ': 'h', 'ە': 'h', 'ہ': '_', '_': '_'
+    }
 
     def getType(self, type1, type2):
         # TODO type ebarat yegani
         tempType = None
         if type1 == 'float' or type2 == 'float':
             tempType = 'float'
-        elif type1 == 'int' or type2 == 'int' or (type1 == 'bool' and type2 == 'char'):
+        elif type1 == 'int' or type2 == 'int' or (type1 == 'bool' and type2 == 'char') or (
+                type1 == 'char' and type2 == 'bool'):
             tempType = 'int'
-        elif type1 == 'char' and type2 == 'char':
+        elif type1 == 'char' or type2 == 'char':
             tempType = 'char'
-        elif type1 == 'bool' and type2 == 'bool':
+        elif type1 == 'bool' or type2 == 'bool':
             tempType = 'bool'
         else:
             print('Ridam in type')
@@ -339,6 +346,10 @@ class Yacc:
         """ebarat : taghirpazir EXP ebarat"""
         # TODO Characters
         p[0] = Entity()
+        if p[1].kind != 'char' and p[3].kind == 'char':
+            p[3].place = str(ord(self.chars[p[3].place]))
+        elif p[3].kind == 'char':
+            p[3].place = str(ord(self.chars[p[3].place]))
         if p[3].type == 'arith':
             self.quadRuples.append(QuadRuple('', p[3].place, '', p[1].place))
         elif p[3].type == 'bool':
@@ -517,12 +528,28 @@ class Yacc:
     def p_ebarateRabetei_2(self, p):
         """ebarateRabetei : ebarateRiaziManteghi amalgareRabetei ebarateRiaziManteghi"""
         p[0] = Entity()
+        if p[1].type == 'bool':
+            p[1].place = self.newTemp(self.getType('bool', ''))
+            Entity.backpatch(p[1].trueList, self.quadRuples, len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('', '1', '', p[1].place))
+            self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(len(self.quadRuples) + 2)))
+            Entity.backpatch(p[1].falseList, self.quadRuples, len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('', '0', '', p[1].place))
+        if p[3].type == 'bool':
+            p[3].place = self.newTemp(self.getType('bool', ''))
+            Entity.backpatch(p[3].trueList, self.quadRuples, len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('', '1', '', p[3].place))
+            self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(len(self.quadRuples) + 2)))
+            Entity.backpatch(p[3].falseList, self.quadRuples, len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('', '0', '', p[3].place))
+
+        p[2].type = 1
         p[0].trueList.append(len(self.quadRuples))
         p[0].falseList.append(len(self.quadRuples) + 1)
         self.quadRuples.append(QuadRuple(p[2].place, p[1].place, p[3].place, 'goto'))
         self.quadRuples.append(QuadRuple('', '', '', 'goto'))
         p[0].type = 'bool'
-        p[0].kind= self.getType(p[1].kind,p[3].kind)
+        p[0].kind = 'bool'
         logger(p, 'Rule 31.2 : ebarateRabetei -> ebarateRiaziManteghi amalgareRabetei ebarateRiaziManteghi')
 
     def p_amalgareRabetei_1(self, p):
@@ -567,7 +594,12 @@ class Yacc:
                                 | ebarateRiaziManteghi MUL ebarateRiaziManteghi
                                 | ebarateRiaziManteghi DIV ebarateRiaziManteghi
                                 | ebarateRiaziManteghi MOD ebarateRiaziManteghi """
-        #TODO Characters
+        # TODO Characters
+
+        # change to english sign
+        print(p[1].kind,p[3].kind,'++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++')
+        if p[2] == '٪':
+            p[2] = '%'
         p[0] = Entity()
         if p[1].type == 'arith' and p[3].type == 'arith':
             p[0].place = self.newTemp(self.getType(p[1].kind, p[3].kind))
@@ -614,7 +646,7 @@ class Yacc:
         if p[1].place == '-':
             p[0] = Entity()
             p[0].type = 'arith'
-            p[0].place = self.newTemp(self.getType(p[2].kind))
+            p[0].place = self.newTemp(self.getType(p[2].kind, 'int'))
             self.quadRuples.append(QuadRuple('*', '-1', p[2].place, p[0].place))
         logger(p, 'Rule 35.1 : ebarateYegani -> amalgareYegani ebarateYegani')
 
@@ -653,6 +685,10 @@ class Yacc:
         p[0] = Entity()
         p[0].place = p[1]
         p[0].kind = self.lookup(p[1])
+        if p[0].kind != 'bool':
+            p[0].type = 'arith'
+        else:
+            p[0].type = 'bool'
 
     def p_taghirpazir_2(self, p):
         # TODO Array
@@ -720,7 +756,7 @@ class Yacc:
     def p_meghdareSabet_3(self, p):
         """meghdareSabet : FIXED_CHARACTER"""
         p[0] = Entity()
-        p[0].place = p[1]
+        p[0].place = p[1].replace('\'', '').replace('\\', '')
         p[0].kind = 'char'
         logger(p, 'Rule 43.3 : meghdareSabet -> FIXED_CHARACTER')
 
@@ -740,6 +776,7 @@ class Yacc:
 
     def p_error(self, p):
         print('syntax error')
+        exit(5)
         # if p:
         #     print("Syntax error at token", p.type)
         #     Just discard the token and tell the parser it's okay.

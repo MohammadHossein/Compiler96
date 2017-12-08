@@ -27,6 +27,7 @@ class QuadRuple:
             if char in self.toEnglish.keys():
                 self.arg_one = self.arg_one.replace(char, self.toEnglish[char])
         op = self.op
+        # print(result,self.arg_one,self.arg_two,op,'**************************************')
         if 'goto' in result:
             if self.arg_two == '':
                 return result

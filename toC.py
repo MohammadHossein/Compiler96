@@ -6,8 +6,10 @@ from QuadRuple import QuadRuple
 
 
 class toC:
-    def __init__(self, quadRuples=[], temps={},symbolTable={}):
+    def __init__(self, quadRuples=[], temps={}, symbolTable={}):
         self.C = []
+        self.define = []
+        self.chars = {}
         self.quadRuples = quadRuples
         self.symbolTable = symbolTable
         self.labels = set()
@@ -18,60 +20,69 @@ class toC:
         self.ids = {}
         number = 0
         for id in ids.keys():
-            self.ids[id] = ('ID' + str(number),ids[id])
+            self.ids[id] = ('ID' + str(number), ids[id])
             number += 1
         # print IDS
         print('------------IDs---------------\n')
-        for key,value in self.ids.items():
-            print('{:1} {:<20}'.format(key,value[0]))
-
+        for key, value in self.ids.items():
+            print(key, value[0], sep='\t\t')
+        print('\n')
 
         self.temps = temps
 
-    def toC(self):
-        pass
+    def defineId(self, ID):
+        code = ''
+        if ID not in self.define:
+            if ID in self.temps.keys():
+                code += self.temps[ID] + ' ' + ID + ';\n'
+            elif ID in self.ids.keys():
+                code += self.ids[ID][1] + ' ' + self.toEnglish(ID) + ';\n'
+            else:
+                # print('Riiiiiiiiidam to define',ID)
+                return code
+            self.define.append(ID)
+        return code
+
+    def addLabel(self, lineNumber):
+        code = ''
+        if str(lineNumber) in self.labels:
+            code += 'L' + str(lineNumber) + ':\n'
+            self.labels.remove(str(lineNumber))
+        return code
+
+    def toEnglish(self, ID):
+        if ID in self.ids.keys():
+            ID = self.ids[ID][0]
+        return ID
 
     def save(self):
-        define = []
         with open('outFile.c', 'w') as output:
-            output.write('#include<stdio.h>\n#include<stdlib.h>\n')
+            output.write('#include<stdio.h>\n#include<stdlib.h>\n#include<stdbool.h>\n')
             output.write('int main(){\n')
             lineNumber = 0
             for quadRuple in self.quadRuples:
                 code = ''
+                code += self.defineId(quadRuple.arg_one)
+                code += self.defineId(quadRuple.arg_two)
                 if quadRuple.result in self.temps.keys():
-                    if quadRuple.result not in define:
-                        code += self.temps[quadRuple.result] + ' ' + quadRuple.result + ';\n'
-                        define.append(quadRuple.result)
-                    if str(lineNumber) in self.labels:
-                        code += 'L' + str(lineNumber) + ':\n'
-                        self.labels.remove(str(lineNumber))
+                    code += self.defineId(quadRuple.result)
+                    code += self.addLabel(lineNumber)
+                    quadRuple.arg_one = self.toEnglish(quadRuple.arg_one)
+                    quadRuple.arg_two = self.toEnglish(quadRuple.arg_two)
                     code += str(quadRuple) + ';\n'
-                    if quadRuple.arg_one in self.ids.keys():
-                        quadRuple.arg_one = self.ids[quadRuple.arg_one][0]
-                    if quadRuple.arg_two in self.ids.keys():
-                        quadRuple.arg_two = self.ids[quadRuple.arg_two][0]
                 elif quadRuple.result in self.ids.keys():
-                    if self.ids[quadRuple.result][0] not in define:
-                        code += self.ids[quadRuple.result][1] + ' ' + self.ids[quadRuple.result][0] + ';\n'
-                        define.append(self.ids[quadRuple.result][0])
-                    if str(lineNumber) in self.labels:
-                        code += 'L' + str(lineNumber) + ':\n'
-                        self.labels.remove(str(lineNumber))
-                    quadRuple.result = self.ids[quadRuple.result][0]
-                    if quadRuple.arg_one in self.ids.keys():
-                        quadRuple.arg_one = self.ids[quadRuple.arg_one][0]
-                    if quadRuple.arg_two in self.ids.keys():
-                        quadRuple.arg_two = self.ids[quadRuple.arg_two][0]
+                    code += self.defineId(quadRuple.result)
+                    code += self.addLabel(lineNumber)
+                    quadRuple.arg_one = self.toEnglish(quadRuple.arg_one)
+                    quadRuple.arg_two = self.toEnglish(quadRuple.arg_two)
+                    quadRuple.result = self.toEnglish(quadRuple.result)
                     code += str(quadRuple) + ';\n'
                 elif 'goto' in quadRuple.result:
-                    if str(lineNumber) in self.labels:
-                        code += 'L' + str(lineNumber) + ':\n'
-                        self.labels.remove(str(lineNumber))
+                    code += self.addLabel(lineNumber)
                     if quadRuple.arg_two == '':
                         code += 'goto L' + quadRuple.result.split()[1] + ';\n'
                     else:
-                        code += 'if ( ' + quadRuple.arg_one + ' ' + quadRuple.op + ' ' + quadRuple.arg_two + ' ) \n'\
+                        code += 'if ( ' + self.toEnglish(quadRuple.arg_one) + ' ' + quadRuple.op + ' ' + self.toEnglish(quadRuple.arg_two) + ' ) \n' \
                                 + '\t' + 'goto L' + quadRuple.result.split()[1] + ';\n'
 
                 output.write(code)
@@ -79,18 +90,19 @@ class toC:
             for label in self.labels:
                 output.write('L' + label + ':\n')
             for id in self.ids.keys():
+                output.write(self.defineId(id))
                 type = self.ids[id][1]
                 ID = self.ids[id][0]
                 if type == 'int':
-                    output.write('printf("%d\\n",' + ID + ');\n')
+                    output.write('printf("' + ID + ': %d\\n",' + ID + ');\n')
                 if type == 'float':
-                    output.write('printf("%f\\n",' + ID + ');\n')
+                    output.write('printf("' + ID + ': %f\\n",' + ID + ');\n')
                 if type == 'char':
-                    output.write('printf("%c\\n",' + ID + ');\n')
+                    output.write('printf("' + ID + ': %c\\n",' + ID + ');\n')
                 if type == 'bool':
-                    output.write('printf("%d\\n",' + ID + ');\n')
+                    output.write('printf("' + ID + ': %d\\n",' + ID + ');\n')
 
-            output.write('printf("Hello World!\\n");\n')
+            # output.write('printf("Hello World!\\n");\n')
             output.write('return 0;\n')
             output.write('}')
 

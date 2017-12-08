@@ -58,8 +58,8 @@ class toC:
 
     def save(self):
         with open('outFile.c', 'w') as output:
-            output.write('#include<stdio.h>\n#include<stdlib.h>\n#include<stdbool.h>\n')
-            output.write('int main(){\n')
+            output.write('#include<stdio.h>\n#include<stdlib.h>\n#include<stdbool.h>\n#include<time.h>\n')
+            output.write('int main(){\nsrand(time(NULL));\n')
             lineNumber = 0
             for quadRuple in self.quadRuples:
                 code = ''

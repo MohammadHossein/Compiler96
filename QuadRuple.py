@@ -32,4 +32,6 @@ class QuadRuple:
             if self.arg_two == '':
                 return result
             return 'if ( ' + self.arg_one + ' ' + op + ' ' + self.arg_two + ' ) ' + result
+        elif op == 'rand':
+            return result + ' = rand(' + self.arg_one + ')'
         return result + ' = ' + self.arg_one + op + self.arg_two

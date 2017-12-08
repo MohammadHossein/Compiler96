@@ -1,4 +1,5 @@
 from operator import itemgetter
+from tabnanny import errprint
 
 from ply import yacc
 
@@ -656,6 +657,14 @@ class Yacc:
             p[0].type = 'arith'
             p[0].place = self.newTemp(self.getType(p[2].kind, 'int'))
             self.quadRuples.append(QuadRuple('*', '-1', p[2].place, p[0].place))
+        if p[1].place == '?':
+            p[0] = Entity()
+            p[0].type = 'arith'
+            p[0].place = self.newTemp(self.getType(p[2].kind, 'int'))
+            self.quadRuples.append(QuadRuple('%', 'rand()',p[2].place, p[0].place))
+            if 'Temp' in p[2].place:
+                self.quadRuples.append(QuadRuple('*','-1',p[0].place,p[0].place))
+
         logger(p, 'Rule 35.1 : ebarateYegani -> amalgareYegani ebarateYegani')
 
     def p_ebarateYegani_2(self, p):
@@ -675,6 +684,8 @@ class Yacc:
 
     def p_amalgareYegani_3(self, p):
         """amalgareYegani : QUESTION_MARK"""
+        p[0] = Entity()
+        p[0].place = '?'
         logger(p, 'Rule 36.3 : amalgareYegani -> ?')
 
     def p_amel_1(self, p):

@@ -404,11 +404,126 @@ class Yacc:
         logger(p, 'Rule 29.8 : ebarat -> ebarateSade')
 
     def p_ebarateSade_1(self, p):
-        """ebarateSade : ebarateSade THEN_OR_KW ebarateSade"""
+        """ebarateSade : ebarateSade m THEN_OR_KW empty ebarateSade m"""
+
+        p[0] = Entity()
+        if p[1].type == 'bool' and p[5].type == 'bool':
+            Entity.backpatch(p[1].falseList, self.quadRuples, p[4].quad)
+            p[0].trueList = p[1].trueList + p[5].trueList
+            p[0].falseList = p[5].falseList
+            p[0].type = 'bool'
+        elif p[1].type == 'bool' and p[5].type == 'arith':
+
+            self.quadRuples += self.quadRuples[p[2].quad+1:len(self.quadRuples)-1]  #error may occure
+            self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(len(self.quadRuples)+1) ))
+            temp = Entity()
+            temp.trueList.append(len(self.quadRuples))
+            self.quadRuples.append(
+                QuadRuple('>', p[5].place, '0', 'goto'))  # TODO - chekc shavad ke > bozorgtar ast ya kuchektar
+            temp.falseList.append(len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('', '', '', 'goto'))
+            Entity.backpatch(p[1].trueList, self.quadRuples, p[4].quad)
+            Entity.backpatch(p[1].falseList, self.quadRuples, p[6].quad+1)
+            p[0].trueList = [p[6].quad] + temp.trueList
+            p[0].falseList = temp.falseList
+            p[0].type = 'bool'
+        elif p[1].type == 'arith' and p[5].type == 'bool':
+            temp = Entity()
+            Entity.backpatch([p[2].quad], self.quadRuples, len(self.quadRuples))
+            temp.trueList.append(len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('>', p[1].place, '0', 'goto'))
+            temp.falseList.append(len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('', '', '', 'goto'))
+            Entity.backpatch(temp.falseList, self.quadRuples, p[4].quad)
+            p[0].trueList = temp.trueList + p[5].trueList
+            p[0].falseList = p[5].falseList
+            p[0].type = 'bool'
+        elif p[1].type == 'arith' and p[5].type == 'arith':
+            self.quadRuples += self.quadRuples[p[2].quad + 1:len(self.quadRuples) - 1]  # error may occure
+            temp = Entity()
+            temp.quad = len(self.quadRuples)
+            self.quadRuples.append(QuadRuple('', '', '', 'goto'))
+            temp1 = Entity()
+            Entity.backpatch([p[2].quad], self.quadRuples, len(self.quadRuples))
+            temp1.trueList.append(len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('>', p[1].place, '0', 'goto'))
+            temp1.falseList.append(len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('', '', '', 'goto'))
+            temp2 = Entity()
+            temp2.trueList.append(len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('>', p[5].place, '0', 'goto'))
+            temp2.falseList.append(len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('', '', '', 'goto'))
+            Entity.backpatch(temp1.trueList, self.quadRuples, p[4].quad)
+            Entity.backpatch(temp1.falseList, self.quadRuples, p[6].quad + 1)
+            Entity.backpatch([temp.quad], self.quadRuples, temp2.trueList[0])
+            p[0].trueList = [p[6].quad] + temp2.trueList
+            p[0].falseList = temp2.falseList
+            p[0].type = 'bool'
+        else:
+            print('Ridiiiiiiiiiiiiiiiiiim!!')
+
         logger(p, 'Rule 30.1 : ebarateSade -> ebarateSade یاوگرنه ebarateSade')
 
     def p_ebarateSade_2(self, p):
-        """ebarateSade : ebarateSade THEN_AND_KW ebarateSade"""
+        """ebarateSade : ebarateSade m THEN_AND_KW empty ebarateSade m"""
+
+        p[0] = Entity()
+        if p[1].type == 'bool' and p[5].type == 'bool':
+            Entity.backpatch(p[1].trueList, self.quadRuples, p[4].quad)
+            p[0].trueList = p[5].trueList
+            p[0].falseList = p[1].falseList + p[5].falseList
+            p[0].type = 'bool'
+        elif p[1].type == 'bool' and p[5].type == 'arith':
+            self.quadRuples += self.quadRuples[p[2].quad + 1:len(self.quadRuples) - 1]  # error may occure
+            self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(len(self.quadRuples) + 1)))
+            temp = Entity()
+            temp.trueList.append(len(self.quadRuples))
+            self.quadRuples.append(
+                QuadRuple('>', p[5].place, '0', 'goto'))  # TODO - chekc shavad ke > bozorgtar ast ya kuchektar
+            temp.falseList.append(len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('', '', '', 'goto'))
+            Entity.backpatch(p[1].trueList, self.quadRuples, p[6].quad + 1)
+            Entity.backpatch(p[1].falseList, self.quadRuples, p[4].quad)
+            p[0].trueList = temp.trueList
+            p[0].falseList =[p[6].quad] + temp.falseList
+            p[0].type = 'bool'
+        elif p[1].type == 'arith' and p[5].type == 'bool':
+            temp = Entity()
+            temp.trueList.append(len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('>', p[1].place, '0', 'goto'))
+            temp.falseList.append(len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('', '', '', 'goto'))
+            Entity.backpatch([p[2].quad], self.quadRuples, len(self.quadRuples) - 2)
+            Entity.backpatch(temp.trueList, self.quadRuples, p[4].quad)
+            p[0].trueList = p[5].trueList
+            p[0].falseList = temp.falseList + p[5].falseList
+            p[0].type = 'bool'
+        elif p[1].type == 'arith' and p[5].type == 'arith':
+            self.quadRuples += self.quadRuples[p[2].quad + 1:len(self.quadRuples) - 1]  # error may occure
+            temp = Entity()
+            temp.quad = len(self.quadRuples)
+            self.quadRuples.append(QuadRuple('', '', '', 'goto'))
+            temp1 = Entity()
+            Entity.backpatch([p[2].quad], self.quadRuples, len(self.quadRuples))
+            temp1.trueList.append(len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('>', p[1].place, '0', 'goto'))
+            temp1.falseList.append(len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('', '', '', 'goto'))
+            temp2 = Entity()
+            temp2.trueList.append(len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('>', p[5].place, '0', 'goto'))
+            temp2.falseList.append(len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('', '', '', 'goto'))
+            Entity.backpatch(temp1.trueList, self.quadRuples, p[6].quad + 1)
+            Entity.backpatch(temp1.falseList, self.quadRuples, p[4].quad)
+            Entity.backpatch([temp.quad], self.quadRuples, temp2.trueList[0])
+            p[0].trueList = temp2.trueList
+            p[0].falseList = [p[6].quad] +  temp2.falseList
+            p[0].type = 'bool'
+        else:
+            print('Ridiiiiiiiiiiiiiiiiiim!!')
+
         logger(p, 'Rule 30.2 : ebarateSade -> ebarateSade وهمچنین ebarateSade')
 
     def p_ebarateSade_3(self, p):  # TODO
@@ -424,10 +539,9 @@ class Yacc:
             Entity.backpatch([p[6].quad], self.quadRuples, len(self.quadRuples))
             temp.trueList.append(len(self.quadRuples))
             self.quadRuples.append(
-                QuadRuple('>', p[4].place, '0', 'goto'))  # TODO - chekc shavad ke > bozorgtar ast ya kuchektar
+                QuadRuple('>', p[5].place, '0', 'goto'))  # TODO - chekc shavad ke > bozorgtar ast ya kuchektar
             temp.falseList.append(len(self.quadRuples))
             self.quadRuples.append(QuadRuple('', '', '', 'goto'))
-            p[0].trueList = p[1].trueList + [len(self.quadRuples)]
             Entity.backpatch(p[1].falseList, self.quadRuples, p[4].quad)
             p[0].trueList = p[1].trueList + temp.trueList
             p[0].falseList = temp.falseList
@@ -517,7 +631,7 @@ class Yacc:
         logger(p, 'Rule 30.4 : ebarateSade -> ebarateSade و ebarateSade')
 
     def p_ebarateSade_5(self, p):
-        """ebarateSade : NOT_KW ebarateSade"""
+        """ebarateSade : NOT_KW ebarateSade m"""
         p[0] = Entity()
         p[0].trueList = p[1].falseList
         p[0].falseList = p[1].trueList

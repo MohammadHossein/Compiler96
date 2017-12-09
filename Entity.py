@@ -7,6 +7,7 @@ class Entity:
         self.place = None
         self.kind = None
         self.quad = 0
+        self.size = None
 
     @staticmethod
     def backpatch(indexes,quad_list, target):

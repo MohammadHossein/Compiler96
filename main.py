@@ -1,7 +1,5 @@
 import codecs
-import logging
 
-import SymbolTable
 from lex import Lexer
 from toC import toC
 from yacc import Yacc

@@ -1,17 +1,16 @@
-from operator import itemgetter
 from tabnanny import errprint
 
 from ply import yacc
 
 import lex
-import logging
-
 from Entity import Entity
 from QuadRuple import QuadRuple
 
 
 def logger(p, log):
     print(log, [str(x).replace('\\n', '') for x in p], sep='\t')
+    # print([str(qr) for qr in Yacc.quadRuples])
+    # print()
     # print(log)
     # pass
 
@@ -35,7 +34,7 @@ class Yacc:
         if type1 == 'float' or type2 == 'float':
             tempType = 'float'
         elif type1 == 'int' or type2 == 'int' or (type1 == 'bool' and type2 == 'char') or (
-                type1 == 'char' and type2 == 'bool'):
+                        type1 == 'char' and type2 == 'bool'):
             tempType = 'int'
         elif type1 == 'char' or type2 == 'char':
             tempType = 'char'
@@ -252,30 +251,37 @@ class Yacc:
 
     def p_jomle_1(self, p):
         """jomle : jomleyeMorakkab"""
+        p[0] = p[1]
         logger(p, 'Rule 19.1 : jomle -> jomleyeMorakkab')
 
     def p_jomle_2(self, p):
         """jomle : jomleyeEbarat"""
+        p[0] = p[1]
         logger(p, 'Rule 19.2 : jomle -> jomleyeEbarat')
 
     def p_jomle_3(self, p):
         """jomle : jomleyeEntekhab"""
+        p[0] = p[1]
         logger(p, 'Rule 19.3 : jomle -> jomleyeEntekhab')
 
     def p_jomle_4(self, p):
         """jomle : jomleyeTekrar"""
+        p[0] = p[1]
         logger(p, 'Rule 19.4 : jomle -> jomleyeTekrar')
 
     def p_jomle_5(self, p):
         """jomle : jomleyeBazgasht"""
+        p[0] = p[1]
         logger(p, 'Rule 19.5 : jomle -> jomleyeBazgasht')
 
     def p_jomle_6(self, p):
         """jomle : jomleyeShekast"""
+        p[0] = p[1]
         logger(p, 'Rule 19.6 : jomle -> jomleyeShekast')
 
     def p_jomleyeMorakkab(self, p):
         """jomleyeMorakkab : OPENING_BRACE tarifhayeMahalli jomleha CLOSING_BRACE"""
+        p[0] = p[3]
         logger(p, 'Rule 20 : jomleyeMorakkab -> { tarifhayeMahalli jomleha }')
 
     def p_jomleha(self, p):
@@ -289,7 +295,9 @@ class Yacc:
 
     def p_jomleyeEbarat(self, p):
         """jomleyeEbarat : ebarat SEMICOLON
+                        | SEMICOLON
         """
+        p[0] = p[1]
         if len(p) == 3:
             logger(p, 'Rule 22.1 : jomleyeEbarat -> ebarat ;')
         elif len(p) == 2:
@@ -326,8 +334,17 @@ class Yacc:
             logger(p, 'Rule 25.1 : onsorePishfarz -> 𝜀')
 
     def p_jomleyeTekrar(self, p):
-        """jomleyeTekrar : WHILE_KW OPENING_PARENTHESES ebarateSade CLOSING_PARENTHESES jomle"""
-
+        """jomleyeTekrar : WHILE_KW OPENING_PARENTHESES empty ebarateSade m CLOSING_PARENTHESES empty jomle"""
+        if p[4].type == 'bool':
+            Entity.backpatch(p[4].trueList, self.quadRuples, p[8].quad)
+            Entity.backpatch(p[4].falseList, self.quadRuples, len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(p[3].quad)))
+        elif p[4].type == 'arith':
+            Entity.backpatch([p[5].quad], self.quadRuples, len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('>', p[4].place, '0', 'goto ' + str(p[7].quad)))
+            self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(len(self.quadRuples) + 1)))
+        else:
+            errprint('Type exp :(')
         logger(p, 'Rule 26 : jomleyeTekrar -> وقتی ( ebarateSade ) jomle')
 
     def p_jomleyeBazgasht(self, p):
@@ -415,8 +432,8 @@ class Yacc:
             p[0].type = 'bool'
         elif p[1].type == 'bool' and p[5].type == 'arith':
 
-            self.quadRuples += self.quadRuples[p[2].quad+1:len(self.quadRuples)-1]  #error may occure
-            self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(len(self.quadRuples)+1) ))
+            self.quadRuples += self.quadRuples[p[2].quad + 1:len(self.quadRuples) - 1]  # error may occure
+            self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(len(self.quadRuples) + 1)))
             temp = Entity()
             temp.trueList.append(len(self.quadRuples))
             self.quadRuples.append(
@@ -424,7 +441,7 @@ class Yacc:
             temp.falseList.append(len(self.quadRuples))
             self.quadRuples.append(QuadRuple('', '', '', 'goto'))
             Entity.backpatch(p[1].trueList, self.quadRuples, p[4].quad)
-            Entity.backpatch(p[1].falseList, self.quadRuples, p[6].quad+1)
+            Entity.backpatch(p[1].falseList, self.quadRuples, p[6].quad + 1)
             p[0].trueList = [p[6].quad] + temp.trueList
             p[0].falseList = temp.falseList
             p[0].type = 'bool'
@@ -487,7 +504,7 @@ class Yacc:
             Entity.backpatch(p[1].trueList, self.quadRuples, p[6].quad + 1)
             Entity.backpatch(p[1].falseList, self.quadRuples, p[4].quad)
             p[0].trueList = temp.trueList
-            p[0].falseList =[p[6].quad] + temp.falseList
+            p[0].falseList = [p[6].quad] + temp.falseList
             p[0].type = 'bool'
         elif p[1].type == 'arith' and p[5].type == 'bool':
             temp = Entity()
@@ -520,7 +537,7 @@ class Yacc:
             Entity.backpatch(temp1.falseList, self.quadRuples, p[4].quad)
             Entity.backpatch([temp.quad], self.quadRuples, temp2.trueList[0])
             p[0].trueList = temp2.trueList
-            p[0].falseList = [p[6].quad] +  temp2.falseList
+            p[0].falseList = [p[6].quad] + temp2.falseList
             p[0].type = 'bool'
         else:
             print('Ridiiiiiiiiiiiiiiiiiim!!')
@@ -551,10 +568,10 @@ class Yacc:
             temp = Entity()
             Entity.backpatch([p[2].quad], self.quadRuples, len(self.quadRuples))
             temp.trueList.append(len(self.quadRuples))
-            self.quadRuples.append(QuadRuple('>',p[1].place,'0','goto'))
+            self.quadRuples.append(QuadRuple('>', p[1].place, '0', 'goto'))
             temp.falseList.append(len(self.quadRuples))
-            self.quadRuples.append(QuadRuple('','','','goto'))
-            Entity.backpatch(temp.falseList,self.quadRuples,p[4].quad)
+            self.quadRuples.append(QuadRuple('', '', '', 'goto'))
+            Entity.backpatch(temp.falseList, self.quadRuples, p[4].quad)
             p[0].trueList = temp.trueList + p[5].trueList
             p[0].falseList = p[5].falseList
             p[0].type = 'bool'
@@ -595,7 +612,7 @@ class Yacc:
             temp.falseList.append(len(self.quadRuples))
             self.quadRuples.append(QuadRuple('', '', '', 'goto'))
             Entity.backpatch(p[1].trueList, self.quadRuples, p[4].quad)
-            Entity.backpatch([p[6].quad], self.quadRuples, p[6].quad+1)
+            Entity.backpatch([p[6].quad], self.quadRuples, p[6].quad + 1)
             p[0].trueList = temp.trueList
             p[0].falseList = p[1].falseList + temp.falseList
             p[0].type = 'bool'
@@ -605,7 +622,7 @@ class Yacc:
             self.quadRuples.append(QuadRuple('>', p[1].place, '0', 'goto'))
             temp.falseList.append(len(self.quadRuples))
             self.quadRuples.append(QuadRuple('', '', '', 'goto'))
-            Entity.backpatch([p[2].quad], self.quadRuples, len(self.quadRuples)-2)
+            Entity.backpatch([p[2].quad], self.quadRuples, len(self.quadRuples) - 2)
             Entity.backpatch(temp.trueList, self.quadRuples, p[4].quad)
             p[0].trueList = p[5].trueList
             p[0].falseList = temp.falseList + p[5].falseList
@@ -679,7 +696,7 @@ class Yacc:
         # p[3].type = 1
         p[0].trueList.append(len(self.quadRuples))
         p[0].falseList.append(len(self.quadRuples) + 1)
-        print(p[0])
+        # print(p[0])
         self.quadRuples.append(QuadRuple(p[2].place, p[1].place, p[4].place, 'goto'))
         self.quadRuples.append(QuadRuple('', '', '', 'goto'))
         p[0].type = 'bool'
@@ -786,9 +803,9 @@ class Yacc:
             p[0] = Entity()
             p[0].type = 'arith'
             p[0].place = self.newTemp(self.getType(p[2].kind, 'int'))
-            self.quadRuples.append(QuadRuple('%', 'rand()',p[2].place, p[0].place))
+            self.quadRuples.append(QuadRuple('%', 'rand()', p[2].place, p[0].place))
             if 'Temp' in p[2].place:
-                self.quadRuples.append(QuadRuple('*','-1',p[0].place,p[0].place))
+                self.quadRuples.append(QuadRuple('*', '-1', p[0].place, p[0].place))
 
         logger(p, 'Rule 35.1 : ebarateYegani -> amalgareYegani ebarateYegani')
 
@@ -891,6 +908,7 @@ class Yacc:
         p[0] = Entity()
         p[0].place = p[1]
         p[0].kind = 'int'
+        p[0].type = 'arith'
         logger(p, 'Rule 43.1 : meghdareSabet -> NUMBER_INT')
 
     def p_meghdareSabet_2(self, p):

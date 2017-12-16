@@ -354,26 +354,32 @@ class Yacc:
 
     def p_jomleyeEntekhab_3(self, p):
         """jomleyeEntekhab :  SWITCH_KW OPENING_PARENTHESES ebarateSade CLOSING_PARENTHESES onsoreHalat onsorePishfarz END_KW"""
-
+        p[5].caseList.reverse()
+        for s in p[5].caseList :
+            self.quadRuples.append(QuadRuple('==', p[3].place, s[1], 'goto ' + str(s[0])))
+        p[5].caseList.reverse()
         logger(p, 'Rule 23.3 : jomleyeEntekhab -> کلید ( ebarateSade ) onsoreHalat onsorePishfarz تمام')
 
-    def p_onsoreHalat(self, p):
-        """onsoreHalat : CASE_KW NUMBER_INT COLON jomle
-                    |   onsoreHalat CASE_KW NUMBER_INT COLON jomle
-        """
-        if len(p) == 6:
-            logger(p, 'Rule 24.1 : onsoreHalat -> حالت NUMBER_INT : jomle ;')
-        elif len(p) == 7:
-            logger(p, 'Rule 24.2 : onsoreHalat -> onsoreHalat حالت NUMBER_INT : jomle ;')
+    def p_onsoreHalat_1(self, p):
+        """onsoreHalat : CASE_KW NUMBER_INT COLON empty jomle"""
+        p[0] = Entity()
+        p[0].caseList.append([p[4].quad,p[2]])
+        logger(p, 'Rule 24.1 : onsoreHalat -> حالت NUMBER_INT : jomle ')
+    def p_onsoreHalat_2(self, p):
+        """onsoreHalat : onsoreHalat CASE_KW NUMBER_INT COLON empty jomle"""
+        p[0] = Entity()
+        p[0].caseList = [[p[5].quad,p[3]]] + p[1].caseList
+        logger(p, 'Rule 24.2 : onsoreHalat -> onsoreHalat حالت NUMBER_INT : jomle ')
 
-    def p_onsorePishfarz(self, p):
-        """onsorePishfarz : DEFAULT_KW COLON jomle
-                        |   empty
-        """
-        if len(p) == 4:
-            logger(p, 'Rule 25.1 : onsorePishfarz -> پیشفرض : jomle ;')
-        elif len(p) == 2:
-            logger(p, 'Rule 25.1 : onsorePishfarz -> 𝜀')
+    def p_onsorePishfarz_1(self, p):
+        """onsorePishfarz : DEFAULT_KW COLON empty jomle"""
+        p[0] = Entity()
+        p[0].caseList.append([p[3].quad,None])
+        logger(p, 'Rule 25.1 : onsorePishfarz -> پیشفرض : jomle ;')
+    def p_onsorePishfarz_2(self, p):
+        """onsorePishfarz : empty"""
+        p[0] = Entity()
+        logger(p, 'Rule 25.2 : onsorePishfarz -> 𝜀')
 
     def p_jomleyeTekrar(self, p):
         """jomleyeTekrar : WHILE_KW OPENING_PARENTHESES empty ebarateSade m CLOSING_PARENTHESES empty jomle"""
@@ -400,6 +406,9 @@ class Yacc:
 
     def p_jomleyeShekast(self, p):
         """jomleyeShekast : BREAK_KW SEMICOLON"""
+        p[0] = Entity()
+        p[0].breakList.append(len(self.quadRuples))
+        self.quadRuples.append(QuadRuple('', '', '', 'goto  '))
         logger(p, 'Rule 28 : jomleyeShekast -> بشکن ;')
 
     def p_ebarat_1(self, p):
@@ -571,7 +580,7 @@ class Yacc:
             arrTemp = self.newTemp(p[1].kind)
             sumTemp = self.newTemp(p[1].kind)
             self.quadRuples.append(QuadRuple('=[]', tempPlace, p[1].size, arrTemp))
-            self.quadRuples.append(QuadRuple('+', arrTemp,'1', sumTemp))
+            self.quadRuples.append(QuadRuple('+', arrTemp, '1', sumTemp))
             self.quadRuples.append(QuadRuple('', sumTemp, '', p[1].place))
         p[0].type = 'arith'
         p[0].place = tempPlace

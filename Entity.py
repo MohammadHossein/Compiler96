@@ -8,6 +8,8 @@ class Entity:
         self.kind = None
         self.quad = 0
         self.size = None
+        self.breakList = []
+        self.caseList = []
 
     @staticmethod
     def backpatch(indexes,quad_list, target):

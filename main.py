@@ -32,6 +32,6 @@ if __name__ == '__main__':
     for x in y.quadRuples:
         print(i, x)
         i += 1
-    c = toC(y.quadRuples, y.temps, y.symbolTable)
+    c = toC(y.quadRuples, y.temps, y.symbolTable, y.arraySize)
     c.save()
     c.run()

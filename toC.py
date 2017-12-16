@@ -1,15 +1,13 @@
-from os import system
-
 from copy import deepcopy
-
-from QuadRuple import QuadRuple
+from os import system
 
 
 class toC:
-    def __init__(self, quadRuples=[], temps={}, symbolTable={}):
+    def __init__(self, quadRuples=[], temps={}, symbolTable={}, arraySize={}):
         self.C = []
         self.define = []
         self.chars = {}
+        self.arraySize = arraySize
         self.quadRuples = quadRuples
         self.symbolTable = symbolTable
         self.labels = set()
@@ -37,7 +35,10 @@ class toC:
             if ID in self.temps.keys():
                 code += self.temps[ID] + ' ' + ID + ';\n'
             elif ID in self.ids.keys():
-                code += self.ids[ID][1] + ' ' + self.toEnglish(ID) + ';\n'
+                if ID not in self.arraySize.keys():
+                    code += self.ids[ID][1] + ' ' + self.toEnglish(ID) + ';\n'
+                else:
+                    code += self.ids[ID][1] + ' ' + self.toEnglish(ID) + '[' + self.arraySize[ID] + '];\n'
             else:
                 # print('Riiiiiiiiidam to define',ID)
                 return code
@@ -61,18 +62,24 @@ class toC:
             output.write('#include<stdio.h>\n#include<stdlib.h>\n#include<stdbool.h>\n#include<time.h>\n')
             output.write('int main(){\nsrand(time(NULL));\n')
             lineNumber = 0
+            for temp in self.temps.keys():
+                code = self.defineId(temp)
+                output.write(code)
+            for ID in self.symbolTable.keys():
+                code = self.defineId(ID)
+                output.write(code)
             for quadRuple in self.quadRuples:
                 code = ''
-                code += self.defineId(quadRuple.arg_one)
-                code += self.defineId(quadRuple.arg_two)
+                # code += self.defineId(quadRuple.arg_one)
+                # code += self.defineId(quadRuple.arg_two)
                 if quadRuple.result in self.temps.keys():
-                    code += self.defineId(quadRuple.result)
+                    # code += self.defineId(quadRuple.result)
                     code += self.addLabel(lineNumber)
                     quadRuple.arg_one = self.toEnglish(quadRuple.arg_one)
                     quadRuple.arg_two = self.toEnglish(quadRuple.arg_two)
                     code += str(quadRuple) + ';\n'
                 elif quadRuple.result in self.ids.keys():
-                    code += self.defineId(quadRuple.result)
+                    # code += self.defineId(quadRuple.result)
                     code += self.addLabel(lineNumber)
                     quadRuple.arg_one = self.toEnglish(quadRuple.arg_one)
                     quadRuple.arg_two = self.toEnglish(quadRuple.arg_two)
@@ -84,7 +91,8 @@ class toC:
                         if quadRuple.arg_two == '':
                             code += 'goto L' + quadRuple.result.split()[1] + ';\n'
                         else:
-                            code += 'if ( ' + self.toEnglish(quadRuple.arg_one) + ' ' + quadRuple.op + ' ' + self.toEnglish(
+                            code += 'if ( ' + self.toEnglish(
+                                quadRuple.arg_one) + ' ' + quadRuple.op + ' ' + self.toEnglish(
                                 quadRuple.arg_two) + ' ) \n' \
                                     + '\t' + 'goto L' + quadRuple.result.split()[1] + ';\n'
 
@@ -97,14 +105,29 @@ class toC:
                 type = self.ids[id][1]
                 ID = self.ids[id][0]
                 if type == 'int':
-                    output.write('printf("' + ID + ': %d\\n",' + ID + ');\n')
+                    if id in self.arraySize.keys():
+                        for i in range(int(self.arraySize[id])):
+                            output.write('printf("' + ID + '[' + str(i) + ']: %d\\n",' + ID + '[' + str(i) + ']);\n')
+                    else:
+                        output.write('printf("' + ID + ': %d\\n",' + ID + ');\n')
                 if type == 'float':
-                    output.write('printf("' + ID + ': %f\\n",' + ID + ');\n')
+                    if id in self.arraySize.keys():
+                        for i in range(int(self.arraySize[id])):
+                            output.write('printf("' + ID + '[' + str(i) + ']: %f\\n",' + ID + '[' + str(i) + ']);\n')
+                    else:
+                        output.write('printf("' + ID + ': %d\\n",' + ID + ');\n')
                 if type == 'char':
-                    output.write('printf("' + ID + ': %c\\n",' + ID + ');\n')
+                    if id in self.arraySize.keys():
+                        for i in range(int(self.arraySize[id])):
+                            output.write('printf("' + ID + '[' + str(i) + ']: %c\\n",' + ID + '[' + str(i) + ']);\n')
+                    else:
+                        output.write('printf("' + ID + ': %d\\n",' + ID + ');\n')
                 if type == 'bool':
-                    output.write('printf("' + ID + ': %d\\n",' + ID + ');\n')
-
+                    if id in self.arraySize.keys():
+                        for i in range(int(self.arraySize[id])):
+                            output.write('printf("' + ID + '[' + str(i) + ']: %d\\n",' + ID + '[' + str(i) + ']);\n')
+                    else:
+                        output.write('printf("' + ID + ': %d\\n",' + ID + ');\n')
             # output.write('printf("Hello World!\\n");\n')
             output.write('return 0;\n')
             output.write('}')

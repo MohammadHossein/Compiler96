@@ -20,6 +20,7 @@ class Yacc:
     quadRuples = []
     symbolTable = {}
     # arrays = {}
+    pointers = {}
     arraySize = {}
     temps = {}
     c = 0
@@ -450,6 +451,7 @@ class Yacc:
             p[3].place = str(ord(self.chars[p[3].place]))
         if p[3].type == 'arith':
             self.quadRuples.append(QuadRuple('', p[3].place, '', p[1].place))
+            errprint(p[1].kind, p[3].kind, p[3].type, p[1].place, p[3].place)
         elif p[3].type == 'bool':
             Entity.backpatch(p[3].trueList, self.quadRuples, len(self.quadRuples))
             self.quadRuples.append(QuadRuple('', '1', '', p[1].place))
@@ -1012,14 +1014,19 @@ class Yacc:
             p[0].type = 'arith'
             p[0].place = self.newTemp(self.getType(p[2].kind, 'int'))
             self.quadRuples.append(QuadRuple('*', '-1', p[2].place, p[0].place))
-        if p[1].place == '?':
+        elif p[1].place == '?':
             p[0] = Entity()
             p[0].type = 'arith'
             p[0].place = self.newTemp(self.getType(p[2].kind, 'int'))
             self.quadRuples.append(QuadRuple('%', 'rand()', p[2].place, p[0].place))
             if 'Temp' in p[2].place:
                 self.quadRuples.append(QuadRuple('*', '-1', p[0].place, p[0].place))
-
+        elif p[1].place == '*':
+            pointerTemp = self.newTemp(p[2].type)
+            # self.pointers[pointerTemp] =
+            #TODO pointer
+            self.quadRuples.append(QuadRuple('',p[2].place,'',pointerTemp))
+            self.quadRuples.append(QuadRuple('*',))
         logger(p, 'Rule 35.1 : ebarateYegani -> amalgareYegani ebarateYegani')
 
     def p_ebarateYegani_2(self, p):
@@ -1035,6 +1042,8 @@ class Yacc:
 
     def p_amalgareYegani_2(self, p):
         """amalgareYegani : MUL"""
+        p[0] = Entity()
+        p[0].place = p[1]
         logger(p, 'Rule 36.2 : amalgareYegani -> *')
 
     def p_amalgareYegani_3(self, p):
@@ -1046,7 +1055,7 @@ class Yacc:
     def p_amel_1(self, p):
         """amel : taghirpazir"""
         p[0] = p[1]
-        if p[1].place in self.arraySize.keys():
+        if p[1].place in self.arraySize.keys() and p[1].size is not None:
             temp = self.newTemp(p[1].kind)
             self.quadRuples.append(QuadRuple('=[]', p[1].place, p[1].size, temp))
             p[0].place = temp

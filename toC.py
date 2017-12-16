@@ -124,8 +124,8 @@ class toC:
                     quadRuple.result = self.toEnglishArray(quadRuple.result)
                     code += str(quadRuple) + ';\n'
                 else:
-                    errprint('Ridim', quadRuple)
-
+                    # errprint('Error', quadRuple)
+                    pass
                 output.write(code)
                 lineNumber += 1
             for label in self.labels:

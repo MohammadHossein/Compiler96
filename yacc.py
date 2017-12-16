@@ -316,17 +316,46 @@ class Yacc:
         elif len(p) == 2:
             logger(p, 'Rule 22.2 : jomleyeEbarat -> ;')
 
-    def p_jomleyeEntekhab(self, p):
-        """jomleyeEntekhab : IF_KW ebarateSade THEN_KW jomle
-                        | IF_KW ebarateSade THEN_KW jomle ELSE_KW jomle
-                        | SWITCH_KW OPENING_PARENTHESES ebarateSade CLOSING_PARENTHESES onsoreHalat onsorePishfarz END_KW
-        """
-        if len(p) == 5:
-            logger(p, 'Rule 23.1 : jomleyeEntekhab -> اگر ebarateSade آنگاه jomle')
-        if len(p) == 7:
-            logger(p, 'Rule 23.2 : jomleyeEntekhab -> اگر ebarateSade آنگاه jomle وگرنه jomle')
-        if len(p) == 8:
-            logger(p, 'Rule 23.3 : jomleyeEntekhab -> کلید ( ebarateSade ) onsoreHalat onsorePishfarz تمام')
+    def p_jomleyeEntekhab_1(self, p):
+        """jomleyeEntekhab : IF_KW ebarateSade THEN_KW n jomle n"""
+
+        if p[2].type == 'bool':
+            Entity.backpatch(p[2].trueList, self.quadRuples, p[4].quad)
+            Entity.backpatch(p[2].falseList, self.quadRuples, len(self.quadRuples))
+        elif p[2].type == 'arith':
+            temp = Entity()
+            temp.trueList.append(len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('>', p[2].place, '0', 'goto' + str(p[4].quad + 1)))
+            Entity.backpatch([p[4].quad], self.quadRuples, 'goto ' + str(temp.trueList[0]))
+            Entity.backpatch([p[6].quad], self.quadRuples, 'goto ' + str(len(self.quadRuples)))
+
+        logger(p, 'Rule 23.1 : jomleyeEntekhab -> اگر ebarateSade آنگاه jomle')
+
+    def p_jomleyeEntekhab_2(self, p):
+        """jomleyeEntekhab : IF_KW ebarateSade THEN_KW n jomle n ELSE_KW jomle n"""
+
+        if p[2].type == 'bool':
+            Entity.backpatch(p[2].trueList, self.quadRuples, p[4].quad)
+            Entity.backpatch(p[2].falseList, self.quadRuples, p[6].quad + 1)
+            Entity.backpatch([p[6].quad], self.quadRuples, 'goto ' + str(len(self.quadRuples)))
+        elif p[2].type == 'arith':
+            temp = Entity()
+            temp.trueList.append(len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('>', p[2].place, '0', 'goto'))
+            temp.falseList.append(len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('', '', '', 'goto'))
+            Entity.backpatch([p[4].quad], self.quadRuples, 'goto ' + str(temp.trueList[0]))
+            Entity.backpatch(temp.trueList, self.quadRuples, p[4].quad + 1)
+            Entity.backpatch([p[6].quad], self.quadRuples, 'goto ' + str(len(self.quadRuples)))
+            Entity.backpatch(temp.falseList, self.quadRuples, p[6].quad + 1)
+            Entity.backpatch([p[9].quad], self.quadRuples, 'goto ' + str(len(self.quadRuples)))
+
+        logger(p, 'Rule 23.2 : jomleyeEntekhab -> اگر ebarateSade آنگاه jomle وگرنه jomle')
+
+    def p_jomleyeEntekhab_3(self, p):
+        """jomleyeEntekhab :  SWITCH_KW OPENING_PARENTHESES ebarateSade CLOSING_PARENTHESES onsoreHalat onsorePishfarz END_KW"""
+
+        logger(p, 'Rule 23.3 : jomleyeEntekhab -> کلید ( ebarateSade ) onsoreHalat onsorePishfarz تمام')
 
     def p_onsoreHalat(self, p):
         """onsoreHalat : CASE_KW NUMBER_INT COLON jomle
@@ -1121,6 +1150,14 @@ class Yacc:
         p[0] = Entity()
         p[0].quad = len(self.quadRuples)
         self.quadRuples.append(QuadRuple('', '', '', 'goto'))
+
+    def p_n(self, p):
+        """
+        n :
+        """
+        p[0] = Entity()
+        p[0].quad = len(self.quadRuples)
+        self.quadRuples.append(QuadRuple('', '', '', ''))
 
     def build(self, **kwargs):
         """

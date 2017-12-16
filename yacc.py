@@ -19,6 +19,8 @@ class Yacc:
     tokens = lex.Lexer.tokens
     quadRuples = []
     symbolTable = {}
+    # arrays = {}
+    arraySize = {}
     temps = {}
     c = 0
     chars = {
@@ -27,6 +29,7 @@ class Yacc:
         'ع': 'e', 'غ': 'g', 'ف': 'f', 'ق': 'g', 'ك': 'k', 'گ': 'g', 'ل': 'l', 'م': 'm', 'ن': 'n', 'ه': 'h',
         'و': 'v', 'ى': 'y', 'ک': 'k', 'ي': 'y', 'ی': 'y', 'ھ': 'h', 'ە': 'h', 'ہ': '_', '_': '_'
     }
+    nums = {'۰': '0', '۵': '5', '۳': '3', '۹': '9', '۲': '2', '۴': '4', '۸': '8', '۷': '7', '۱': '1', '۶': '6'}
 
     def getType(self, type1, type2):
         # TODO type ebarat yegani
@@ -111,6 +114,8 @@ class Yacc:
         """tarifeMotheghayyereMahdud : jenseMahdud tarifhayeMotheghayyerha SEMICOLON"""
         for ID in p[2].trueList:
             self.symbolTable[ID] = p[1].kind
+        # if ID in self.arrays.keys():
+        #     self.arrays[ID] = self.newTemp(p[1].kind)
         logger(p, 'Rule 6 : tarifeMotheghayyereMahdud -> jenseMahdud tarifhayeMotheghayyerha ;')
 
     def p_jenseMahdud(self, p):
@@ -164,8 +169,10 @@ class Yacc:
         if len(p) == 2:
             logger(p, 'Rule 10.1 : tarifhayeMotheghayyerha -> tarifeMeghdareAvvalie')
             p[0].trueList.append(p[1].place)
+            # p[0].falseList.append(p[1].size)
         elif len(p) == 4:
             p[0].trueList = p[1].trueList + [p[3].place]
+            # p[0].falseList = p[1].falseList + [p[3].size]
             logger(p, 'Rule 10.2 : tarifhayeMotheghayyerha -> tarifhayeMotheghayyerha , tarifeMeghdareAvvalie')
 
     def p_tarifeMeghdareAvvalie(self, p):
@@ -195,10 +202,16 @@ class Yacc:
         """
         p[0] = Entity()
         p[0].place = p[1]
+        # self.arrays[p[1]] = ''
         if len(p) == 2:
             logger(p, 'Rule 12.1 : tarifeShenaseyeMoteghayyer -> ID')
         elif len(p) == 5:
-            # p[0].size = p[3]
+            t = ''
+            for i in p[3]:
+                t += self.nums[i]
+            p[3] = t
+            p[0].size = p[3]
+            self.arraySize[p[1]] = p[3]
             logger(p, 'Rule 12.1 : tarifeShenaseyeMoteghayyer -> ID [ NUMBER_INT ]')
 
     def p_tarifeTabe(self, p):
@@ -364,6 +377,10 @@ class Yacc:
         """ebarat : taghirpazir EXP ebarat"""
         # TODO Characters
         p[0] = Entity()
+        tempPlace = p[1].place
+        if p[1].size is not None:
+            p[1].place = p[1].place + '[' + p[1].size + ']'
+            # p[1].place = p[1].place
         if p[1].kind != 'char' and p[3].kind == 'char':
             p[3].place = str(ord(self.chars[p[3].place]))
         elif p[3].kind == 'char':
@@ -377,43 +394,176 @@ class Yacc:
             Entity.backpatch(p[3].falseList, self.quadRuples, len(self.quadRuples))
             self.quadRuples.append(QuadRuple('', '0', '', p[1].place))
         p[0].type = p[3].type
-        p[0].place = p[1].place
+        # p[0].place = p[1].place
+        p[0].place = tempPlace
         logger(p, 'Rule 29.1 : ebarat -> taghirpazir = ebarat')
 
     def p_ebarat_2(self, p):
         """ebarat : taghirpazir PLUS_EXP ebarat"""
         p[0] = Entity()
-        self.quadRuples.append(QuadRuple('+', p[1].place, p[3].place, p[1].place))
+        tempPlace = p[1].place
+        if p[1].size is not None:
+            p[1].place = p[1].place + '[' + p[1].size + ']'
+            # p[1].place = p[1].place
+        if p[1].kind != 'char' and p[3].kind == 'char':
+            p[3].place = str(ord(self.chars[p[3].place]))
+        elif p[3].kind == 'char':
+            p[3].place = str(ord(self.chars[p[3].place]))
+        if p[3].type == 'arith':
+            if p[1].size is None:
+                self.quadRuples.append(QuadRuple('+', p[3].place, p[1].place, p[1].place))
+            else:
+                arrTemp = self.newTemp(p[1].kind)
+                sumTemp = self.newTemp(p[1].kind)
+                self.quadRuples.append(QuadRuple('=[]', tempPlace, p[1].size, arrTemp))
+                self.quadRuples.append(QuadRuple('+', arrTemp, p[3].place, sumTemp))
+                self.quadRuples.append(QuadRuple('', sumTemp, '', p[1].place))
+        elif p[3].type == 'bool':
+            boolTemp = self.newTemp(p[1].type)
+            Entity.backpatch(p[3].trueList, self.quadRuples, len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('', '1', '', boolTemp))
+            self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(len(self.quadRuples) + 2)))
+            Entity.backpatch(p[3].falseList, self.quadRuples, len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('', '0', '', boolTemp))
+            self.quadRuples.append(QuadRuple('+', boolTemp, p[1].place, p[1].place))
+        p[0].type = p[3].type
+        # p[0].place = p[1].place
+        p[0].place = tempPlace
+
         logger(p, 'Rule 29.2 : ebarat -> taghirpazir += ebarat')
 
     def p_ebarat_3(self, p):
         """ebarat : taghirpazir MINUS_EXP ebarat"""
         p[0] = Entity()
-        self.quadRuples.append(QuadRuple('-', p[1].place, p[3].place, p[1].place))
+        tempPlace = p[1].place
+        if p[1].size is not None:
+            p[1].place = p[1].place + '[' + p[1].size + ']'
+            # p[1].place = p[1].place
+        if p[1].kind != 'char' and p[3].kind == 'char':
+            p[3].place = str(ord(self.chars[p[3].place]))
+        elif p[3].kind == 'char':
+            p[3].place = str(ord(self.chars[p[3].place]))
+        if p[3].type == 'arith':
+            if p[1].size is None:
+                self.quadRuples.append(QuadRuple('-', p[3].place, p[1].place, p[1].place))
+            else:
+                arrTemp = self.newTemp(p[1].kind)
+                sumTemp = self.newTemp(p[1].kind)
+                self.quadRuples.append(QuadRuple('=[]', tempPlace, p[1].size, arrTemp))
+                self.quadRuples.append(QuadRuple('-', arrTemp, p[3].place, sumTemp))
+                self.quadRuples.append(QuadRuple('', sumTemp, '', p[1].place))
+        elif p[3].type == 'bool':
+            boolTemp = self.newTemp(p[1].type)
+            Entity.backpatch(p[3].trueList, self.quadRuples, len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('', '1', '', boolTemp))
+            self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(len(self.quadRuples) + 2)))
+            Entity.backpatch(p[3].falseList, self.quadRuples, len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('', '0', '', boolTemp))
+            self.quadRuples.append(QuadRuple('-', boolTemp, p[1].place, p[1].place))
+        p[0].type = p[3].type
+        # p[0].place = p[1].place
+        p[0].place = tempPlace
         logger(p, 'Rule 29.3 : ebarat -> taghirpazir -= ebarat')
 
     def p_ebarat_4(self, p):
         """ebarat : taghirpazir MUL_EXP ebarat"""
         p[0] = Entity()
-        self.quadRuples.append(QuadRuple('*', p[1].place, p[3].place, p[1].place))
+        tempPlace = p[1].place
+        if p[1].size is not None:
+            p[1].place = p[1].place + '[' + p[1].size + ']'
+            # p[1].place = p[1].place
+        if p[1].kind != 'char' and p[3].kind == 'char':
+            p[3].place = str(ord(self.chars[p[3].place]))
+        elif p[3].kind == 'char':
+            p[3].place = str(ord(self.chars[p[3].place]))
+        if p[3].type == 'arith':
+            if p[1].size is None:
+                self.quadRuples.append(QuadRuple('*', p[3].place, p[1].place, p[1].place))
+            else:
+                arrTemp = self.newTemp(p[1].kind)
+                sumTemp = self.newTemp(p[1].kind)
+                self.quadRuples.append(QuadRuple('=[]', tempPlace, p[1].size, arrTemp))
+                self.quadRuples.append(QuadRuple('*', arrTemp, p[3].place, sumTemp))
+                self.quadRuples.append(QuadRuple('', sumTemp, '', p[1].place))
+        elif p[3].type == 'bool':
+            boolTemp = self.newTemp(p[1].type)
+            Entity.backpatch(p[3].trueList, self.quadRuples, len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('', '1', '', boolTemp))
+            self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(len(self.quadRuples) + 2)))
+            Entity.backpatch(p[3].falseList, self.quadRuples, len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('', '0', '', boolTemp))
+            self.quadRuples.append(QuadRuple('*', boolTemp, p[1].place, p[1].place))
+        p[0].type = p[3].type
+        # p[0].place = p[1].place
+        p[0].place = tempPlace
         logger(p, 'Rule 29.4 : ebarat -> taghirpazir *= ebarat')
 
     def p_ebarat_5(self, p):
         """ebarat : taghirpazir DIV_EXP ebarat"""
         p[0] = Entity()
-        self.quadRuples.append(QuadRuple('/', p[1].place, p[3].place, p[1].place))
+        tempPlace = p[1].place
+        if p[1].size is not None:
+            p[1].place = p[1].place + '[' + p[1].size + ']'
+            # p[1].place = p[1].place
+        if p[1].kind != 'char' and p[3].kind == 'char':
+            p[3].place = str(ord(self.chars[p[3].place]))
+        elif p[3].kind == 'char':
+            p[3].place = str(ord(self.chars[p[3].place]))
+        if p[3].type == 'arith':
+            if p[1].size is None:
+                self.quadRuples.append(QuadRuple('/', p[3].place, p[1].place, p[1].place))
+            else:
+                arrTemp = self.newTemp(p[1].kind)
+                sumTemp = self.newTemp(p[1].kind)
+                self.quadRuples.append(QuadRuple('=[]', tempPlace, p[1].size, arrTemp))
+                self.quadRuples.append(QuadRuple('/', arrTemp, p[3].place, sumTemp))
+                self.quadRuples.append(QuadRuple('', sumTemp, '', p[1].place))
+        elif p[3].type == 'bool':
+            boolTemp = self.newTemp(p[1].type)
+            Entity.backpatch(p[3].trueList, self.quadRuples, len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('', '1', '', boolTemp))
+            self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(len(self.quadRuples) + 2)))
+            Entity.backpatch(p[3].falseList, self.quadRuples, len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('', '0', '', boolTemp))
+            self.quadRuples.append(QuadRuple('/', boolTemp, p[1].place, p[1].place))
+        p[0].type = p[3].type
+        # p[0].place = p[1].place
+        p[0].place = tempPlace
         logger(p, 'Rule 29.5 : ebarat -> taghirpazir /= ebarat')
 
     def p_ebarat_6(self, p):
         """ebarat : taghirpazir PLUSPLUS"""
         p[0] = Entity()
-        self.quadRuples.append(QuadRuple('+', p[1].place, '1', p[1].place))
+        tempPlace = p[1].place
+        if p[1].size is None:
+            self.quadRuples.append(QuadRuple('+', '1', p[1].place, p[1].place))
+        else:
+            p[1].place = p[1].place + '[' + p[1].size + ']'
+            arrTemp = self.newTemp(p[1].kind)
+            sumTemp = self.newTemp(p[1].kind)
+            self.quadRuples.append(QuadRuple('=[]', tempPlace, p[1].size, arrTemp))
+            self.quadRuples.append(QuadRuple('+', arrTemp,'1', sumTemp))
+            self.quadRuples.append(QuadRuple('', sumTemp, '', p[1].place))
+        p[0].type = 'arith'
+        p[0].place = tempPlace
         logger(p, 'Rule 29.6 : ebarat -> taghirpazir ++')
 
     def p_ebarat_7(self, p):
         """ebarat : taghirpazir MINUSMINUS"""
         p[0] = Entity()
-        self.quadRuples.append(QuadRuple('-', p[1].place, '1', p[1].place))
+        tempPlace = p[1].place
+        if p[1].size is None:
+            self.quadRuples.append(QuadRuple('-', '1', p[1].place, p[1].place))
+        else:
+            p[1].place = p[1].place + '[' + p[1].size + ']'
+            arrTemp = self.newTemp(p[1].kind)
+            sumTemp = self.newTemp(p[1].kind)
+            self.quadRuples.append(QuadRuple('=[]', tempPlace, p[1].size, arrTemp))
+            self.quadRuples.append(QuadRuple('-', arrTemp, '1', sumTemp))
+            self.quadRuples.append(QuadRuple('', sumTemp, '', p[1].place))
+        p[0].type = 'arith'
+        p[0].place = tempPlace
+
         logger(p, 'Rule 29.7 : ebarat -> taghirpazir --')
 
     def p_ebarat_8(self, p):
@@ -833,6 +983,10 @@ class Yacc:
     def p_amel_1(self, p):
         """amel : taghirpazir"""
         p[0] = p[1]
+        if p[1].place in self.arraySize.keys():
+            temp = self.newTemp(p[1].kind)
+            self.quadRuples.append(QuadRuple('=[]', p[1].place, p[1].size, temp))
+            p[0].place = temp
         logger(p, 'Rule 37.1 : amel -> taghirpazir')
 
     def p_amel_2(self, p):
@@ -854,9 +1008,11 @@ class Yacc:
     def p_taghirpazir_2(self, p):
         # TODO Array
         """taghirpazir : taghirpazir OPENING_BRACKET ebarat CLOSING_BRACKET"""
-        # p[0] = Entity()
-        # p[0].place = self.newTemp(p[1].kind)
-        # self.quadRuples.append(QuadRuple('=[]',p[1].place,p[3].place,p[0].place))
+        p[0] = Entity()
+        p[0].place = p[1].place
+        p[0].kind = p[1].kind
+        p[0].size = p[3].place
+        p[0].type = p[1].type
         logger(p, 'Rule 38.2 : taghirpazir -> taghirpazir [ ebarat ]')
 
     def p_taghirpazir_3(self, p):

@@ -5,7 +5,7 @@ from toC import toC
 from yacc import Yacc
 
 if __name__ == '__main__':
-    f = codecs.open('Samples//sample_While.fa', encoding='utf-8')
+    f = codecs.open('Samples//array.fa', encoding='utf-8')
     data = f.read()
     f.close()
     # lexer = Lexer().build()

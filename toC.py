@@ -1,12 +1,20 @@
 from copy import deepcopy
 from os import system
+from tabnanny import errprint
 
 
 class toC:
     def __init__(self, quadRuples=[], temps={}, symbolTable={}, arraySize={}):
         self.C = []
         self.define = []
-        self.chars = {}
+        self.chars = {
+            'آ': 'a', 'ا': 'a', 'ب': 'b', 'پ': 'p', 'ت': 't', 'ث': 's', 'ج': 'j', 'چ': 'c', 'ح': 'h', 'خ': 'k',
+            'د': 'd', 'ذ': 'z', 'ر': 'r', 'ز': 'z', 'ژ': 'x', 'س': 'S', 'ش': 's', 'ص': 's', 'ض': 'z', 'ط': 't',
+            'ظ': 'z', 'ع': 'e', 'غ': 'g', 'ف': 'f', 'ق': 'g', 'ك': 'k', 'گ': 'g', 'ل': 'l', 'م': 'm', 'ن': 'n',
+            'ه': 'h', 'و': 'v', 'ى': 'y', 'ک': 'k', 'ي': 'y', 'ی': 'y', 'ھ': 'h', 'ە': 'h', 'ہ': '_', '_': '_',
+            '۰': '0', '۵': '5', '۳': '3', '۹': '9', '۲': '2', '۴': '4', '۸': '8', '۷': '7', '۱': '1', '۶': '6'
+        }
+        self.nums = {'۰': '0', '۵': '5', '۳': '3', '۹': '9', '۲': '2', '۴': '4', '۸': '8', '۷': '7', '۱': '1', '۶': '6'}
         self.arraySize = arraySize
         self.quadRuples = quadRuples
         self.symbolTable = symbolTable
@@ -57,6 +65,19 @@ class toC:
             ID = self.ids[ID][0]
         return ID
 
+    def toEnglishArray(self, ID):
+        out = ''
+        tempID = ID.split('[', 1)[0]
+        out += self.toEnglish(tempID)
+        out += '['
+        for c in ID[ID.index('[')+1: ID.index(']')]:
+            try:
+                out += self.nums[c]
+            except:
+                out += c
+        out += ']'
+        return out
+
     def save(self):
         with open('outFile.c', 'w') as output:
             output.write('#include<stdio.h>\n#include<stdlib.h>\n#include<stdbool.h>\n#include<time.h>\n')
@@ -72,21 +93,23 @@ class toC:
                 code = ''
                 # code += self.defineId(quadRuple.arg_one)
                 # code += self.defineId(quadRuple.arg_two)
+                code += self.addLabel(lineNumber)
                 if quadRuple.result in self.temps.keys():
                     # code += self.defineId(quadRuple.result)
-                    code += self.addLabel(lineNumber)
+                    # code += self.addLabel(lineNumber)
                     quadRuple.arg_one = self.toEnglish(quadRuple.arg_one)
                     quadRuple.arg_two = self.toEnglish(quadRuple.arg_two)
+                    quadRuple.result = self.toEnglish(quadRuple.result)
                     code += str(quadRuple) + ';\n'
                 elif quadRuple.result in self.ids.keys():
                     # code += self.defineId(quadRuple.result)
-                    code += self.addLabel(lineNumber)
+                    # code += self.addLabel(lineNumber)
                     quadRuple.arg_one = self.toEnglish(quadRuple.arg_one)
                     quadRuple.arg_two = self.toEnglish(quadRuple.arg_two)
                     quadRuple.result = self.toEnglish(quadRuple.result)
                     code += str(quadRuple) + ';\n'
                 elif 'goto' in quadRuple.result:
-                    code += self.addLabel(lineNumber)
+                    # code += self.addLabel(lineNumber)
                     if len(quadRuple.result.split()) > 1:
                         if quadRuple.arg_two == '':
                             code += 'goto L' + quadRuple.result.split()[1] + ';\n'
@@ -95,6 +118,13 @@ class toC:
                                 quadRuple.arg_one) + ' ' + quadRuple.op + ' ' + self.toEnglish(
                                 quadRuple.arg_two) + ' ) \n' \
                                     + '\t' + 'goto L' + quadRuple.result.split()[1] + ';\n'
+                elif '[' in quadRuple.result:
+                    quadRuple.arg_one = self.toEnglish(quadRuple.arg_one)
+                    quadRuple.arg_two = self.toEnglish(quadRuple.arg_two)
+                    quadRuple.result = self.toEnglishArray(quadRuple.result)
+                    code += str(quadRuple) + ';\n'
+                else:
+                    errprint('Ridim', quadRuple)
 
                 output.write(code)
                 lineNumber += 1

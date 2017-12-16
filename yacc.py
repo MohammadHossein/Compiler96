@@ -297,14 +297,16 @@ class Yacc:
         p[0] = p[3]
         logger(p, 'Rule 20 : jomleyeMorakkab -> { tarifhayeMahalli jomleha }')
 
-    def p_jomleha(self, p):
-        """jomleha : jomleha jomle
-                    | empty
-        """
-        if len(p) == 3:
-            logger(p, 'Rule 21.1 : jomleha -> jomleha jomle')
-        elif len(p) == 2:
-            logger(p, 'Rule 21.2 : jomleha -> 𝜀')
+    def p_jomleha_1(self, p):
+        """jomleha : jomleha jomle"""
+        p[0] = Entity()
+        p[0].breakList = p[1].breakList + p[2].breakList
+        logger(p, 'Rule 21.1 : jomleha -> jomleha jomle')
+
+    def p_jomleha_2(self, p):
+        """jomleha : empty"""
+        p[0] = Entity()
+        logger(p, 'Rule 21.2 : jomleha -> 𝜀')
 
     def p_jomleyeEbarat(self, p):
         """jomleyeEbarat : ebarat SEMICOLON
@@ -353,22 +355,44 @@ class Yacc:
         logger(p, 'Rule 23.2 : jomleyeEntekhab -> اگر ebarateSade آنگاه jomle وگرنه jomle')
 
     def p_jomleyeEntekhab_3(self, p):
-        """jomleyeEntekhab :  SWITCH_KW OPENING_PARENTHESES ebarateSade CLOSING_PARENTHESES onsoreHalat onsorePishfarz END_KW"""
-        p[5].caseList.reverse()
-        for s in p[5].caseList :
-            self.quadRuples.append(QuadRuple('==', p[3].place, s[1], 'goto ' + str(s[0])))
-        p[5].caseList.reverse()
+        """jomleyeEntekhab :  SWITCH_KW OPENING_PARENTHESES ebarateSade m CLOSING_PARENTHESES onsoreHalat onsorePishfarz END_KW m"""
+        p[0] = Entity()
+        boolTemp = None
+        if p[3].type == 'bool':
+            boolTemp = self.newTemp('bool')
+            Entity.backpatch(p[3].trueList, self.quadRuples, len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('', '1', '', boolTemp))
+            self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(len(self.quadRuples) + 2)))
+            Entity.backpatch(p[3].falseList, self.quadRuples, len(self.quadRuples))
+            self.quadRuples.append(QuadRuple('', '0', '', boolTemp))
+        elif p[3].type == 'arith':
+            boolTemp = p[3].place
+
+        Entity.backpatch([p[4].quad], self.quadRuples, len(self.quadRuples))
+        p[6].caseList.reverse()
+        for s in p[6].caseList :
+            self.quadRuples.append(QuadRuple('==', boolTemp, s[1], 'goto ' + str(s[0])))
+        p[6].caseList.reverse()
+        if p[7].caseList :
+            self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(p[7].caseList[0][0])))
+        Entity.backpatch([p[9].quad], self.quadRuples, len(self.quadRuples))
+        Entity.backpatch(p[6].breakList, self.quadRuples, len(self.quadRuples))
+        Entity.backpatch(p[7].breakList , self.quadRuples, len(self.quadRuples))
+
+
         logger(p, 'Rule 23.3 : jomleyeEntekhab -> کلید ( ebarateSade ) onsoreHalat onsorePishfarz تمام')
 
     def p_onsoreHalat_1(self, p):
         """onsoreHalat : CASE_KW NUMBER_INT COLON empty jomle"""
         p[0] = Entity()
         p[0].caseList.append([p[4].quad,p[2]])
+        p[0].breakList = p[5].breakList
         logger(p, 'Rule 24.1 : onsoreHalat -> حالت NUMBER_INT : jomle ')
     def p_onsoreHalat_2(self, p):
         """onsoreHalat : onsoreHalat CASE_KW NUMBER_INT COLON empty jomle"""
         p[0] = Entity()
         p[0].caseList = [[p[5].quad,p[3]]] + p[1].caseList
+        p[0].breakList = p[6].breakList + p[1].breakList
         logger(p, 'Rule 24.2 : onsoreHalat -> onsoreHalat حالت NUMBER_INT : jomle ')
 
     def p_onsorePishfarz_1(self, p):
@@ -393,6 +417,7 @@ class Yacc:
             self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(len(self.quadRuples) + 1)))
         else:
             errprint('Type exp :(')
+        Entity.backpatch(p[8].breakList, self.quadRuples, len(self.quadRuples))
         logger(p, 'Rule 26 : jomleyeTekrar -> وقتی ( ebarateSade ) jomle')
 
     def p_jomleyeBazgasht(self, p):
@@ -431,7 +456,7 @@ class Yacc:
             self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(len(self.quadRuples) + 2)))
             Entity.backpatch(p[3].falseList, self.quadRuples, len(self.quadRuples))
             self.quadRuples.append(QuadRuple('', '0', '', p[1].place))
-        p[0].type = p[3].type
+        p[0].type = 'arith'
         # p[0].place = p[1].place
         p[0].place = tempPlace
         logger(p, 'Rule 29.1 : ebarat -> taghirpazir = ebarat')
@@ -464,7 +489,7 @@ class Yacc:
             Entity.backpatch(p[3].falseList, self.quadRuples, len(self.quadRuples))
             self.quadRuples.append(QuadRuple('', '0', '', boolTemp))
             self.quadRuples.append(QuadRuple('+', boolTemp, p[1].place, p[1].place))
-        p[0].type = p[3].type
+        p[0].type = 'arith'
         # p[0].place = p[1].place
         p[0].place = tempPlace
 
@@ -498,7 +523,7 @@ class Yacc:
             Entity.backpatch(p[3].falseList, self.quadRuples, len(self.quadRuples))
             self.quadRuples.append(QuadRuple('', '0', '', boolTemp))
             self.quadRuples.append(QuadRuple('-', boolTemp, p[1].place, p[1].place))
-        p[0].type = p[3].type
+        p[0].type = 'arith'
         # p[0].place = p[1].place
         p[0].place = tempPlace
         logger(p, 'Rule 29.3 : ebarat -> taghirpazir -= ebarat')
@@ -531,7 +556,7 @@ class Yacc:
             Entity.backpatch(p[3].falseList, self.quadRuples, len(self.quadRuples))
             self.quadRuples.append(QuadRuple('', '0', '', boolTemp))
             self.quadRuples.append(QuadRuple('*', boolTemp, p[1].place, p[1].place))
-        p[0].type = p[3].type
+        p[0].type = 'arith'
         # p[0].place = p[1].place
         p[0].place = tempPlace
         logger(p, 'Rule 29.4 : ebarat -> taghirpazir *= ebarat')
@@ -564,7 +589,7 @@ class Yacc:
             Entity.backpatch(p[3].falseList, self.quadRuples, len(self.quadRuples))
             self.quadRuples.append(QuadRuple('', '0', '', boolTemp))
             self.quadRuples.append(QuadRuple('/', boolTemp, p[1].place, p[1].place))
-        p[0].type = p[3].type
+        p[0].type = 'arith'
         # p[0].place = p[1].place
         p[0].place = tempPlace
         logger(p, 'Rule 29.5 : ebarat -> taghirpazir /= ebarat')

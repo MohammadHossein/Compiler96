@@ -34,4 +34,6 @@ class QuadRuple:
             return result + ' = rand(' + self.arg_one + ')'
         elif op == '=[]':
             return result + ' = ' + self.arg_one + '[' + self.arg_two + ']'
+        elif op == '' and self.arg_one == '' and self.arg_two == '' and self.result == '':
+            return ''
         return result + ' = ' + self.arg_one + op + self.arg_two

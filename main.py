@@ -1,11 +1,11 @@
 import codecs
 
-from lex import Lexer
-from toC import toC
-from yacc import Yacc
+from Lexer.lex import Lexer
+from ToC.toC import toC
+from Parser.yacc import Yacc
 
 if __name__ == '__main__':
-    f = codecs.open('Samples//array.fa', encoding='utf-8')
+    f = codecs.open('Samples//statement.fa', encoding='utf-8')
     data = f.read()
     f.close()
     # lexer = Lexer().build()

@@ -79,7 +79,7 @@ class toC:
         return out
 
     def save(self):
-        with open('outFile.c', 'w') as output:
+        with open('ToC/out/outFile.c', 'w') as output:
             output.write('#include<stdio.h>\n#include<stdlib.h>\n#include<stdbool.h>\n#include<time.h>\n')
             output.write('int main(){\nsrand(time(NULL));\n')
             lineNumber = 0
@@ -165,6 +165,9 @@ class toC:
     def run(self):
         print('=======================================')
         print('Compiling...')
-        if system('gcc outFile.c -o executable.out') == 0:
+        out = system('gcc ToC/out/outFile.c -o ToC/out/executable.out')
+        if out == 0:
             print('Running...\n\n')
-            system('./executable.out')
+            system('ToC/out/executable.out')
+        else :
+            print(out.read())

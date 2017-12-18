@@ -2,9 +2,9 @@ from tabnanny import errprint
 
 from ply import yacc
 
-import lex
-from Entity import Entity
-from QuadRuple import QuadRuple
+from Lexer import lex
+from Tools.Entity import Entity
+from Tools.QuadRuple import QuadRuple
 
 
 def logger(p, log):
@@ -321,7 +321,8 @@ class Yacc:
 
     def p_jomleyeEntekhab_1(self, p):
         """jomleyeEntekhab : IF_KW ebarateSade THEN_KW n jomle n"""
-
+        p[0] = Entity()
+        p[0].breakList = p[5].breakList
         if p[2].type == 'bool':
             Entity.backpatch(p[2].trueList, self.quadRuples, p[4].quad)
             Entity.backpatch(p[2].falseList, self.quadRuples, len(self.quadRuples))
@@ -336,7 +337,8 @@ class Yacc:
 
     def p_jomleyeEntekhab_2(self, p):
         """jomleyeEntekhab : IF_KW ebarateSade THEN_KW n jomle n ELSE_KW jomle n"""
-
+        p[0] = Entity()
+        p[0].breakList = p[5].breakList + p[8].breakList
         if p[2].type == 'bool':
             Entity.backpatch(p[2].trueList, self.quadRuples, p[4].quad)
             Entity.backpatch(p[2].falseList, self.quadRuples, p[6].quad + 1)
@@ -371,36 +373,37 @@ class Yacc:
 
         Entity.backpatch([p[4].quad], self.quadRuples, len(self.quadRuples))
         p[6].caseList.reverse()
-        for s in p[6].caseList :
+        for s in p[6].caseList:
             self.quadRuples.append(QuadRuple('==', boolTemp, s[1], 'goto ' + str(s[0])))
         p[6].caseList.reverse()
-        if p[7].caseList :
+        if p[7].caseList:
             self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(p[7].caseList[0][0])))
         Entity.backpatch([p[9].quad], self.quadRuples, len(self.quadRuples))
         Entity.backpatch(p[6].breakList, self.quadRuples, len(self.quadRuples))
-        Entity.backpatch(p[7].breakList , self.quadRuples, len(self.quadRuples))
-
+        Entity.backpatch(p[7].breakList, self.quadRuples, len(self.quadRuples))
 
         logger(p, 'Rule 23.3 : jomleyeEntekhab -> کلید ( ebarateSade ) onsoreHalat onsorePishfarz تمام')
 
     def p_onsoreHalat_1(self, p):
         """onsoreHalat : CASE_KW NUMBER_INT COLON empty jomle"""
         p[0] = Entity()
-        p[0].caseList.append([p[4].quad,p[2]])
+        p[0].caseList.append([p[4].quad, p[2]])
         p[0].breakList = p[5].breakList
         logger(p, 'Rule 24.1 : onsoreHalat -> حالت NUMBER_INT : jomle ')
+
     def p_onsoreHalat_2(self, p):
         """onsoreHalat : onsoreHalat CASE_KW NUMBER_INT COLON empty jomle"""
         p[0] = Entity()
-        p[0].caseList = [[p[5].quad,p[3]]] + p[1].caseList
+        p[0].caseList = [[p[5].quad, p[3]]] + p[1].caseList
         p[0].breakList = p[6].breakList + p[1].breakList
         logger(p, 'Rule 24.2 : onsoreHalat -> onsoreHalat حالت NUMBER_INT : jomle ')
 
     def p_onsorePishfarz_1(self, p):
         """onsorePishfarz : DEFAULT_KW COLON empty jomle"""
         p[0] = Entity()
-        p[0].caseList.append([p[3].quad,None])
+        p[0].caseList.append([p[3].quad, None])
         logger(p, 'Rule 25.1 : onsorePishfarz -> پیشفرض : jomle ;')
+
     def p_onsorePishfarz_2(self, p):
         """onsorePishfarz : empty"""
         p[0] = Entity()
@@ -408,6 +411,7 @@ class Yacc:
 
     def p_jomleyeTekrar(self, p):
         """jomleyeTekrar : WHILE_KW OPENING_PARENTHESES empty ebarateSade m CLOSING_PARENTHESES empty jomle"""
+        p[0] = Entity()
         if p[4].type == 'bool':
             Entity.backpatch(p[4].trueList, self.quadRuples, p[8].quad)
             Entity.backpatch(p[4].falseList, self.quadRuples, len(self.quadRuples))
@@ -451,7 +455,7 @@ class Yacc:
             p[3].place = str(ord(self.chars[p[3].place]))
         if p[3].type == 'arith':
             self.quadRuples.append(QuadRuple('', p[3].place, '', p[1].place))
-            errprint(p[1].kind, p[3].kind, p[3].type, p[1].place, p[3].place)
+            # errprint(p[1].kind, p[3].kind, p[3].type, p[1].place, p[3].place)
         elif p[3].type == 'bool':
             Entity.backpatch(p[3].trueList, self.quadRuples, len(self.quadRuples))
             self.quadRuples.append(QuadRuple('', '1', '', p[1].place))
@@ -1024,9 +1028,9 @@ class Yacc:
         elif p[1].place == '*':
             pointerTemp = self.newTemp(p[2].type)
             # self.pointers[pointerTemp] =
-            #TODO pointer
-            self.quadRuples.append(QuadRuple('',p[2].place,'',pointerTemp))
-            self.quadRuples.append(QuadRuple('*',))
+            # TODO pointer
+            self.quadRuples.append(QuadRuple('', p[2].place, '', pointerTemp))
+            self.quadRuples.append(QuadRuple('*', ))
         logger(p, 'Rule 35.1 : ebarateYegani -> amalgareYegani ebarateYegani')
 
     def p_ebarateYegani_2(self, p):

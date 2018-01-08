@@ -38,7 +38,7 @@ class Yacc:
         if type1 == 'float' or type2 == 'float':
             tempType = 'float'
         elif type1 == 'int' or type2 == 'int' or (type1 == 'bool' and type2 == 'char') or (
-                        type1 == 'char' and type2 == 'bool'):
+                type1 == 'char' and type2 == 'bool'):
             tempType = 'int'
         elif type1 == 'char' or type2 == 'char':
             tempType = 'char'
@@ -50,6 +50,8 @@ class Yacc:
 
     def newTemp(self, type):
         self.c += 1
+        if type == 'int':
+            type = 'long'
         temp = 'Temp' + str(self.c)
         self.temps[temp] = type
         return temp
@@ -1026,11 +1028,14 @@ class Yacc:
             if 'Temp' in p[2].place:
                 self.quadRuples.append(QuadRuple('*', '-1', p[0].place, p[0].place))
         elif p[1].place == '*':
-            pointerTemp = self.newTemp(p[2].type)
-            # self.pointers[pointerTemp] =
             # TODO pointer
-            self.quadRuples.append(QuadRuple('', p[2].place, '', pointerTemp))
-            self.quadRuples.append(QuadRuple('*', ))
+            pointerTemp = self.newTemp(p[2].kind + '*')
+            self.quadRuples.append(QuadRuple('(int*)', '', p[2].place, pointerTemp))
+            temp = self.newTemp(p[2].kind)
+            self.quadRuples.append(QuadRuple('*', '', pointerTemp, temp))
+            p[0] = Entity()
+            p[0].type = 'arith'
+            p[0].place = temp
         logger(p, 'Rule 35.1 : ebarateYegani -> amalgareYegani ebarateYegani')
 
     def p_ebarateYegani_2(self, p):

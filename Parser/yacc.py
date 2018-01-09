@@ -24,8 +24,11 @@ class Yacc:
     # arrays = {}
     pointers = {}
     arraySize = {}
+    funcs = {}
     temps = {}
     c = 0
+    returnID = 'returnValue'
+    paramCount = 0
     chars = {
         'آ': 'a', 'ا': 'a', 'ب': 'b', 'پ': 'p', 'ت': 't', 'ث': 's', 'ج': 'j', 'چ': 'c', 'ح': 'h', 'خ': 'k', 'د': 'd',
         'ذ': 'z', 'ر': 'r', 'ز': 'z', 'ژ': 'x', 'س': 'S', 'ش': 's', 'ص': 's', 'ض': 'z', 'ط': 't', 'ظ': 'z',
@@ -58,6 +61,15 @@ class Yacc:
         self.temps[temp] = type
         return temp
 
+    def newFuncTemp(self, name):
+        if name == 'اصلی':
+            self.funcs[name] = 'MAIN'
+            return 'MAIN'
+        self.c += 1
+        temp = 'Func' + str(self.c)
+        self.funcs[name] = temp
+        return temp
+
     precedence = (
         ('left', 'OR_KW', 'THEN_OR_KW'),
         ('left', 'AND_KW', 'THEN_AND_KW'),
@@ -71,7 +83,7 @@ class Yacc:
     )
 
     def p_barnameh(self, p):
-        """barnameh : PROGRAM_KW ID tarifha"""
+        """barnameh : PROGRAM_KW start ID tarifha"""
         logger(p, 'Rule 1 : barnameh -> برنامه SHENASE tarifha')
 
     def p_tarifha(self, p):
@@ -95,7 +107,7 @@ class Yacc:
         """tarif : tarifeTabe"""
         logger(p, 'Rule 3.1 : tarif -> tarifeTabe')
 
-    def p_tarifeSakhtar(self, p):
+    def p_tarifeSakhtar(self, p):  # TODO struct
         """tarifeSakhtar : STRUCTURE_KW ID OPENING_BRACE tarifhayeMahalli CLOSING_BRACE"""
         logger(p, 'Rule 4 : tarifeSakhtar -> ساختار SHENASE { tarifhayeMahalli }')
 
@@ -122,7 +134,7 @@ class Yacc:
                         | jens
         """
 
-        if len(p) == 3:
+        if len(p) == 3:  # TODO Const
             p[0] = p[2]
             logger(p, 'Rule 7.1 : jenseMahdud -> ثابت jens')
 
@@ -213,60 +225,78 @@ class Yacc:
             self.arraySize[p[1]] = p[3]
             logger(p, 'Rule 12.1 : tarifeShenaseyeMoteghayyer -> ID [ NUMBER_INT ]')
 
-    def p_tarifeTabe_1(self, p):
-        """tarifeTabe : jens ID OPENING_PARENTHESES vorudi CLOSING_PARENTHESES jomle"""
-
+    def p_jenseTabe_1(self, p):
+        """ jenseTabe : jens ID """
+        self.quadRuples.append(QuadRuple('label', '', '', self.newFuncTemp(p[2])))
         self.symbolTable.table[-1].name = p[2]
         self.symbolTable.table[-1].type = p[1].place
-        logger(p, 'Rule 13.1 tarifeTabe -> jens ID ( vorudi ) jomle')
+        p[0] = Entity()
+        p[0].place = p[2]
+        logger(p, 'Rule 13.01 jenseTabe -> jens ID')
 
-
-
-    def p_tarifeTabe_2(self, p):
-        """tarifeTabe : ID OPENING_PARENTHESES vorudi CLOSING_PARENTHESES jomle"""
-
+    def p_jenseTabe_2(self, p):
+        """ jenseTabe : ID """
+        self.quadRuples.append(QuadRuple('label', '', '', self.newFuncTemp(p[1])))
         self.symbolTable.table[-1].name = p[1]
         self.symbolTable.table[-1].type = None
-        logger(p, 'Rule 13.2 tarifeTabe -> ID ( vorudi ) jomle')
+        p[0] = Entity()
+        p[0].place = p[1]
+        logger(p, 'Rule 13.02 jenseTabe -> ID')
+
+    def p_tarifeTabe(self, p):
+        """tarifeTabe : jenseTabe OPENING_PARENTHESES vorudi CLOSING_PARENTHESES jomle"""
+        logger(p, 'Rule 13.1 tarifeTabe -> jenseTabe ( vorudi ) jomle')
 
     def p_vorudi1(self, p):
-        """vorudi : vorudiha"""
+        """vorudi : params vorudiha"""
         logger(p, 'Rule 14.1 vorudi -> vorudiha')
 
     def p_vorudi2(self, p):
         """vorudi : empty"""
         logger(p, 'Rule 14.2 vorudi -> 𝜀')
 
-    def p_vorudiha(self, p):
-        """vorudiha : vorudiha SEMICOLON jensVorudiha
-                    | jensVorudiha
-        """
-        if len(p) == 4:
-            logger(p, 'Rule 15.1 : vorudiha -> vorudiha ; jensVorudiha')
-        elif len(p) == 2:
-            logger(p, 'Rule 15.2 : vorudiha -> jensVorudiha')
+    def p_vorudiha_1(self, p):
+        """vorudiha : vorudiha SEMICOLON jensVorudiha"""
+        logger(p, 'Rule 15.1 : vorudiha -> vorudiha ; jensVorudiha')
+
+    def p_vorudiha_2(self, p):
+        """vorudiha : jensVorudiha"""
+        logger(p, 'Rule 15.2 : vorudiha -> jensVorudiha')
 
     def p_jensVorudiha(self, p):
         """jensVorudiha : jens shenaseyeVorudiha"""
+
+        for ID in p[2].trueList:
+            self.symbolTable[ID] = p[1].kind
+            self.quadRuples.append(QuadRuple('-', 'sp', 'paramCount', 'paramTemp1'))
+            self.quadRuples.append(QuadRuple('-', 'paramTemp1', '1', 'paramTemp2'))
+            self.quadRuples.append(QuadRuple('*', '(' + p[1].kind + ')', 'paramTemp2', ID))
+            self.quadRuples.append(QuadRuple('+', 'paramCount', '1', 'paramCount'))
         logger(p, 'Rule 16 : jensVorudiha -> jens shenaseyeVorudiha')
 
-    def p_shenaseyeVorudiha(self, p):
-        """shenaseyeVorudiha : shenaseyeVorudiha COMMA shenaseyeVorudi
-                            | shenaseyeVorudi
-        """
-        if len(p) == 4:
-            logger(p, 'Rule 17.1 : shenaseyeVorudiha -> shenaseyeVorudiha , shenaseyeVorudi')
-        elif len(p) == 2:
-            logger(p, 'Rule 17.2 : shenaseyeVorudiha -> shenaseyeVorudi')
+    def p_shenaseyeVorudiha_1(self, p):
+        """shenaseyeVorudiha : shenaseyeVorudiha COMMA shenaseyeVorudi"""
+        p[0] = Entity()
+        p[0].trueList = p[1].trueList + [p[3].place]
+        logger(p, 'Rule 17.1 : shenaseyeVorudiha -> shenaseyeVorudiha , shenaseyeVorudi')
 
-    def p_shenaseyeVorudi(self, p):
-        """shenaseyeVorudi : ID
-                            | ID OPENING_BRACE CLOSING_BRACE
-        """
-        if len(p) == 2:
-            logger(p, 'Rule 18.1 : shenaseyeVorudi -> ID')
-        if len(p) == 4:
-            logger(p, 'Rule 18.2 : shenaseyeVorudi -> ID [ ]')
+    def p_shenaseyeVorudiha_2(self, p):
+        """shenaseyeVorudiha : shenaseyeVorudi"""
+        p[0] = Entity()
+        p[0].trueList.append(p[1].place)
+        logger(p, 'Rule 17.2 : shenaseyeVorudiha -> shenaseyeVorudi')
+
+    def p_shenaseyeVorudi_1(self, p):
+        """shenaseyeVorudi : ID"""
+        p[0] = Entity()
+        p[0].place = p[1]
+        logger(p, 'Rule 18.1 : shenaseyeVorudi -> ID')
+
+    def p_shenaseyeVorudi_2(self, p):
+        """shenaseyeVorudi : ID OPENING_BRACE CLOSING_BRACE"""
+        p[0] = Entity()
+        p[0].place = p[1]
+        logger(p, 'Rule 18.2 : shenaseyeVorudi -> ID [ ]')
 
     def p_jomle_1(self, p):
         """jomle : jomleyeMorakkab"""
@@ -433,14 +463,35 @@ class Yacc:
         Entity.backpatch(p[8].breakList, self.quadRuples, len(self.quadRuples))
         logger(p, 'Rule 26 : jomleyeTekrar -> وقتی ( ebarateSade ) jomle')
 
-    def p_jomleyeBazgasht(self, p):
-        """jomleyeBazgasht : RETURN_KW SEMICOLON
-                        |   RETURN_KW ebarat SEMICOLON
-        """
-        if len(p) == 3:
-            logger(p, 'Rule 27.1 : jomleyeBazgasht -> برگردان ;')
-        if len(p) == 4:
-            logger(p, 'Rule 27.1 : jomleyeBazgasht -> برگردان ebarat ;')
+    def p_jomleyeBazgasht_1(self, p):
+        """jomleyeBazgasht : RETURN_KW SEMICOLON"""
+        p[0] = Entity()
+        self.quadRuples.append(QuadRuple('-', 'top', '1', 'top'))
+        self.quadRuples.append(QuadRuple('*', '', 'top', 'sp'))
+        self.quadRuples.append(QuadRuple('-', 'top', '1', 'top'))
+        temp = self.newTemp('long*')
+        self.quadRuples.append(QuadRuple('*', '', 'top', temp))
+        self.quadRuples.append(QuadRuple('-', 'top', temp, 'top'))
+        self.quadRuples.append(QuadRuple('-', 'top', '1', 'top'))
+        self.quadRuples.append(QuadRuple('', 'buf', '1', 'longjmp'))
+        logger(p, 'Rule 27.1 : jomleyeBazgasht -> برگردان ;')
+
+    def p_jomleyeBazgasht_2(self, p):
+        """jomleyeBazgasht : RETURN_KW ebarat SEMICOLON"""
+        p[0] = Entity()
+
+        self.quadRuples.append(QuadRuple('-', 'top', '1', 'top'))
+        self.quadRuples.append(QuadRuple('*', '', 'top', 'sp'))
+        self.quadRuples.append(QuadRuple('-', 'top', '1', 'top'))
+        temp = self.newTemp('long*')
+        self.quadRuples.append(QuadRuple('*', '', 'top', temp))
+        self.quadRuples.append(QuadRuple('-', 'top', temp, 'top'))
+        self.quadRuples.append(QuadRuple('-', 'top', '1', 'top'))
+        # self.quadRuples.append(QuadRuple('(' + p[2].kind + '*)', '', self.returnID, temp))
+        # self.quadRuples.append(QuadRuple('', '', p[2].place, '*' + temp))
+        self.quadRuples.append(QuadRuple('', '', p[2].place, '*(' + p[2].kind + '*)' + self.returnID))
+        self.quadRuples.append(QuadRuple('', 'buf', '1', 'longjmp'))
+        logger(p, 'Rule 27.1 : jomleyeBazgasht -> برگردان ebarat ;')
 
     def p_jomleyeShekast(self, p):
         """jomleyeShekast : BREAK_KW SEMICOLON"""
@@ -1113,6 +1164,7 @@ class Yacc:
 
     def p_taghirnapazir_2(self, p):
         """taghirnapazir : sedaZadan"""
+        p[0] = p[1]
         logger(p, 'Rule 39.2 : taghirnapazir -> sedaZadan')
 
     def p_taghirnapazir_3(self, p):
@@ -1127,24 +1179,51 @@ class Yacc:
 
     def p_sedaZadan(self, p):
         """sedaZadan : ID OPENING_PARENTHESES bordareVorudi CLOSING_PARENTHESES"""
+        p[0] = Entity()
+        p[0].type = 'arith'
+        type = self.lookup(p[1])
+        p[0].place = self.newTemp(type)
+        self.quadRuples.append(QuadRuple('+', 'top', '1', 'top'))
+        self.quadRuples.append(QuadRuple('', str(p[3].quad), '', '*top'))
+        self.quadRuples.append(QuadRuple('+', 'top', '1', 'top'))
+        self.quadRuples.append(QuadRuple('', '(long*)', 'sp', '*top'))
+        self.quadRuples.append(QuadRuple('', 'top', '', 'sp'))
+        temp = self.newTemp('int')
+        self.quadRuples.append(QuadRuple('setjmp', 'buf', '', temp))
+        self.quadRuples.append(QuadRuple('==', temp, '1', 'goto ' + str(len(self.quadRuples) + 2)))
+        self.quadRuples.append(QuadRuple('', '', '', 'goto ' + self.funcs[p[1]]))
+        temp = self.newTemp(type + '*')
+        self.quadRuples.append(QuadRuple('', '(' + type + '*)', self.returnID, temp))
+        self.quadRuples.append(QuadRuple('*', '', temp, p[0].place))
         logger(p, 'Rule 40 : sedaZadan -> ID ( bordareVorudi )')
 
     def p_bordareVorudi_1(self, p):
         """bordareVorudi : bordareVorudiha"""
+        p[0] = Entity()
+        p[0].quad = p[1].quad
         logger(p, 'Rule 41.1 : bordareVorudi -> bordareVorudiha')
 
     def p_bordareVorudi_2(self, p):
         """bordareVorudi : empty"""
+        p[0] = Entity()
+        p[0].quad = 0
         logger(p, 'Rule 41.2 : bordareVorudi -> ϵ')
 
-    def p_bordareVorudiha(self, p):
-        """bordareVorudiha : bordareVorudiha COMMA
-                            | ebarat
-        """
-        if len(p) == 3:
-            logger(p, 'Rule 42.1: bordareVorudiha -> bordareVorudiha ,')
-        elif len(p) == 2:
-            logger(p, 'Rule 42.2 :bordareVorudiha -> ebarat')
+    def p_bordareVorudiha_1(self, p):
+        """bordareVorudiha : bordareVorudiha COMMA ebarat"""
+        self.quadRuples.append(QuadRuple('+', 'top', '1', 'top'))
+        self.quadRuples.append(QuadRuple('', p[1].place, '', '*top'))
+        p[0] = Entity()
+        p[0].quad = p[1].quad + 1
+        logger(p, 'Rule 42.1: bordareVorudiha -> bordareVorudiha , ebarat')
+
+    def p_bordareVorudiha_2(self, p):
+        """bordareVorudiha : ebarat"""
+        self.quadRuples.append(QuadRuple('+', 'top', '1', 'top'))
+        self.quadRuples.append(QuadRuple('', p[1].place, '', '*top'))
+        p[0] = Entity()
+        p[0].quad = 1
+        logger(p, 'Rule 42.2 :bordareVorudiha -> ebarat')
 
     def p_meghdareSabet_1(self, p):
         """meghdareSabet : NUMBER_INT"""
@@ -1223,6 +1302,20 @@ class Yacc:
         """
         self.tblptr.append(self.symbolTable.mktable(self.tblptr[-1]))
 
+
+    def p_startFunction(self, p):
+        """
+        params :
+        """
+        spvalue = self.newTemp('long*')
+        self.quadRuples.append(QuadRuple('-', 'sp', '1', spvalue))
+        self.quadRuples.append(QuadRuple('*', '', spvalue, 'paramCount'))
+
+    def p_start(self, p):
+        """
+        start :
+        """
+        self.quadRuples.append(QuadRuple('', '', '', 'goto MAIN'))
 
     def build(self, **kwargs):
         """

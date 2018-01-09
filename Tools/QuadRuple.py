@@ -19,17 +19,30 @@ class QuadRuple:
 
     def __str__(self):
         result = self.result
-        for char in self.arg_two:
-            if char in self.toEnglish.keys():
-                self.arg_two = self.arg_two.replace(char, self.toEnglish[char])
-        for char in self.arg_one:
-            if char in self.toEnglish.keys():
-                self.arg_one = self.arg_one.replace(char, self.toEnglish[char])
+        if self.arg_two is not None:
+            for char in self.arg_two:
+                if char in self.toEnglish.keys():
+                    self.arg_two = self.arg_two.replace(char, self.toEnglish[char])
+        else:
+            self.arg_two = 'None'
+        if self.arg_one is not None:
+            for char in self.arg_one:
+                if char in self.toEnglish.keys():
+                    self.arg_one = self.arg_one.replace(char, self.toEnglish[char])
+        else:
+            self.arg_one = 'None'
+
         op = self.op
         if 'goto' in result:
             if self.arg_two == '':
                 return result
             return 'if ( ' + self.arg_one + ' ' + op + ' ' + self.arg_two + ' ) ' + result
+        elif op == 'label':
+            return self.result + ':'
+        elif op == 'setjmp':
+            return self.result + ' = setjmp(' + self.arg_one + ')'
+        elif result == 'longjmp':
+            return 'longjmp(' + self.arg_one + ',' + self.arg_two + ')'
         elif op == 'rand':
             return result + ' = rand(' + self.arg_one + ')'
         elif op == '=[]':

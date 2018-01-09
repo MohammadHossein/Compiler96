@@ -5,7 +5,7 @@ from ToC.toC import toC
 from Parser.yacc import Yacc
 
 if __name__ == '__main__':
-    f = codecs.open('Samples//array.fa', encoding='utf-8')
+    f = codecs.open('Samples/Function.fa', encoding='utf-8')
     data = f.read()
     f.close()
     # lexer = Lexer().build()
@@ -32,6 +32,6 @@ if __name__ == '__main__':
     for x in y.quadRuples:
         print(i, x)
         i += 1
-    c = toC(y.quadRuples, y.temps, y.symbolTable, y.arraySize)
+    c = toC(y.quadRuples, y.temps, y.symbolTable, y.arraySize,y.returnID)
     c.save()
     c.run()

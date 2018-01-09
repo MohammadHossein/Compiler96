@@ -29,6 +29,8 @@ class Yacc:
     c = 0
     returnID = 'returnValue'
     paramCount = 0
+    funcTempID = ''
+    funcTempType = ''
     chars = {
         'آ': 'a', 'ا': 'a', 'ب': 'b', 'پ': 'p', 'ت': 't', 'ث': 's', 'ج': 'j', 'چ': 'c', 'ح': 'h', 'خ': 'k', 'د': 'd',
         'ذ': 'z', 'ر': 'r', 'ز': 'z', 'ژ': 'x', 'س': 'S', 'ش': 's', 'ص': 's', 'ض': 'z', 'ط': 't', 'ظ': 'z',
@@ -115,6 +117,7 @@ class Yacc:
         """tarifhayeMahalli : tarifhayeMahalli tarifeMotheghayyereMahdud
                             | empty
         """
+        p[0] = Entity()
         if len(p) == 3:
             logger(p, 'Rule 5.1: tarifhayeMahalli -> tarifhayeMahalli tarifeMotheghayyereMahdud')
         elif len(p) == 2:
@@ -123,7 +126,7 @@ class Yacc:
     def p_tarifeMotheghayyereMahdud(self, p):
         """tarifeMotheghayyereMahdud : jenseMahdud tarifhayeMotheghayyerha SEMICOLON"""
         for ID in p[2].trueList:
-            self.symbolTable.enter(self.tblptr[-1], ID, p[1].kind)
+            self.tblptr[-1].enter(ID, p[1].kind)
 
         # if ID in self.arrays.keys():
         #     self.arrays[ID] = self.newTemp(p[1].kind)
@@ -169,7 +172,7 @@ class Yacc:
     def p_tarifeMotheghayyer(self, p):
         """tarifeMotheghayyer : jens tarifhayeMotheghayyerha SEMICOLON"""
         for ID in p[2].trueList:
-            self.symbolTable.enter(self.tblptr[-1], ID, p[1].kind)
+            self.tblptr[-1].enter(ID, p[1].kind)
         logger(p, 'Rule 9 : tarifeMotheghayyer -> jens tarifhayeMotheghayyerha ;')
 
     def p_tarifhayeMotegayyerha(self, p):
@@ -228,8 +231,8 @@ class Yacc:
     def p_jenseTabe_1(self, p):
         """ jenseTabe : jens ID """
         self.quadRuples.append(QuadRuple('label', '', '', self.newFuncTemp(p[2])))
-        self.symbolTable.table[-1].name = p[2]
-        self.symbolTable.table[-1].type = p[1].place
+        self.funcTempID = p[2]
+        self.funcTempType = p[1].kind
         p[0] = Entity()
         p[0].place = p[2]
         logger(p, 'Rule 13.01 jenseTabe -> jens ID')
@@ -237,8 +240,8 @@ class Yacc:
     def p_jenseTabe_2(self, p):
         """ jenseTabe : ID """
         self.quadRuples.append(QuadRuple('label', '', '', self.newFuncTemp(p[1])))
-        self.symbolTable.table[-1].name = p[1]
-        self.symbolTable.table[-1].type = None
+        self.funcTempID = p[1]
+        self.funcTempType = None
         p[0] = Entity()
         p[0].place = p[1]
         logger(p, 'Rule 13.02 jenseTabe -> ID')
@@ -331,9 +334,7 @@ class Yacc:
     def p_jomleyeMorakkab(self, p):
         """jomleyeMorakkab : OPENING_BRACE startScope  tarifhayeMahalli jomleha CLOSING_BRACE"""
         p[0] = p[3]
-        temp = self.tblptr.pop()
-        print(self.tblptr)
-        self.symbolTable.enterproc(self.tblptr[-1], '', '', temp)
+        self.tblptr.pop()
         logger(p, 'Rule 20 : jomleyeMorakkab -> { tarifhayeMahalli jomleha }')
 
     def p_jomleha_1(self, p):
@@ -1300,7 +1301,11 @@ class Yacc:
         """
         startScope :
         """
-        self.tblptr.append(self.symbolTable.mktable(self.tblptr[-1]))
+        temp = SymbolTable.mktable(self.tblptr[-1])
+        self.tblptr[-1].enterproc(self.funcTempID, self.funcTempType, temp)
+        self.tblptr.append(temp)
+        self.funcTempType = ''
+        self.funcTempID = ''
 
 
     def p_startFunction(self, p):

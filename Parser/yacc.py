@@ -3,6 +3,7 @@ from tabnanny import errprint
 from ply import yacc
 
 from Lexer import lex
+from Tools.SymbolTable import SymbolTable
 from Tools.Entity import Entity
 from Tools.QuadRuple import QuadRuple
 
@@ -18,7 +19,8 @@ def logger(p, log):
 class Yacc:
     tokens = lex.Lexer.tokens
     quadRuples = []
-    symbolTable = {}
+    symbolTable = SymbolTable()
+    tblptr = [symbolTable.table]
     # arrays = {}
     pointers = {}
     arraySize = {}
@@ -53,13 +55,6 @@ class Yacc:
         temp = 'Temp' + str(self.c)
         self.temps[temp] = type
         return temp
-
-    def lookup(self, ID):
-        try:
-            return self.symbolTable[ID]
-        except:
-            errprint('متفیر \"' + ID + '\" تعریف نشده است!')
-            exit(1)
 
     precedence = (
         ('left', 'OR_KW', 'THEN_OR_KW'),
@@ -114,7 +109,8 @@ class Yacc:
     def p_tarifeMotheghayyereMahdud(self, p):
         """tarifeMotheghayyereMahdud : jenseMahdud tarifhayeMotheghayyerha SEMICOLON"""
         for ID in p[2].trueList:
-            self.symbolTable[ID] = p[1].kind
+            self.symbolTable.enter(self.tblptr[-1], ID, p[1].kind)
+
         # if ID in self.arrays.keys():
         #     self.arrays[ID] = self.newTemp(p[1].kind)
         logger(p, 'Rule 6 : tarifeMotheghayyereMahdud -> jenseMahdud tarifhayeMotheghayyerha ;')
@@ -159,7 +155,7 @@ class Yacc:
     def p_tarifeMotheghayyer(self, p):
         """tarifeMotheghayyer : jens tarifhayeMotheghayyerha SEMICOLON"""
         for ID in p[2].trueList:
-            self.symbolTable[ID] = p[1].kind
+            self.symbolTable.enter(self.tblptr[-1], ID, p[1].kind)
         logger(p, 'Rule 9 : tarifeMotheghayyer -> jens tarifhayeMotheghayyerha ;')
 
     def p_tarifhayeMotegayyerha(self, p):
@@ -215,14 +211,21 @@ class Yacc:
             self.arraySize[p[1]] = p[3]
             logger(p, 'Rule 12.1 : tarifeShenaseyeMoteghayyer -> ID [ NUMBER_INT ]')
 
-    def p_tarifeTabe(self, p):
-        """tarifeTabe : jens ID OPENING_PARENTHESES vorudi CLOSING_PARENTHESES jomle
-                    |   ID OPENING_PARENTHESES vorudi CLOSING_PARENTHESES jomle
-        """
-        if len(p) == 7:
-            logger(p, 'Rule 13.1 tarifeTabe -> jens ID ( vorudi ) jomle')
-        elif len(p) == 6:
-            logger(p, 'Rule 13.2 tarifeTabe -> ID ( vorudi ) jomle')
+    def p_tarifeTabe_1(self, p):
+        """tarifeTabe : jens ID OPENING_PARENTHESES vorudi CLOSING_PARENTHESES jomle"""
+
+        self.symbolTable.table[-1].name = p[2]
+        self.symbolTable.table[-1].type = p[1].place
+        logger(p, 'Rule 13.1 tarifeTabe -> jens ID ( vorudi ) jomle')
+
+
+
+    def p_tarifeTabe_2(self, p):
+        """tarifeTabe : ID OPENING_PARENTHESES vorudi CLOSING_PARENTHESES jomle"""
+
+        self.symbolTable.table[-1].name = p[1]
+        self.symbolTable.table[-1].type = None
+        logger(p, 'Rule 13.2 tarifeTabe -> ID ( vorudi ) jomle')
 
     def p_vorudi1(self, p):
         """vorudi : vorudiha"""
@@ -294,8 +297,11 @@ class Yacc:
         logger(p, 'Rule 19.6 : jomle -> jomleyeShekast')
 
     def p_jomleyeMorakkab(self, p):
-        """jomleyeMorakkab : OPENING_BRACE tarifhayeMahalli jomleha CLOSING_BRACE"""
+        """jomleyeMorakkab : OPENING_BRACE startScope  tarifhayeMahalli jomleha CLOSING_BRACE"""
         p[0] = p[3]
+        temp = self.tblptr.pop()
+        print(self.tblptr)
+        self.symbolTable.enterproc(self.tblptr[-1], '', '', temp)
         logger(p, 'Rule 20 : jomleyeMorakkab -> { tarifhayeMahalli jomleha }')
 
     def p_jomleha_1(self, p):
@@ -1075,7 +1081,7 @@ class Yacc:
         logger(p, 'Rule 38.1 : taghirpazir -> ID')
         p[0] = Entity()
         p[0].place = p[1]
-        p[0].kind = self.lookup(p[1])
+        p[0].kind = self.tblptr[-1].lookup(p[1])
         if p[0].kind != 'bool':
             p[0].type = 'arith'
         else:
@@ -1205,6 +1211,13 @@ class Yacc:
         p[0] = Entity()
         p[0].quad = len(self.quadRuples)
         self.quadRuples.append(QuadRuple('', '', '', ''))
+
+    def p_startScope(self, p):
+        """
+        startScope :
+        """
+        self.tblptr.append(self.symbolTable.mktable(self.tblptr[-1]))
+
 
     def build(self, **kwargs):
         """

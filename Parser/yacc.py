@@ -3,9 +3,9 @@ from tabnanny import errprint
 from ply import yacc
 
 from Lexer import lex
-from Tools.SymbolTable import SymbolTable
 from Tools.Entity import Entity
 from Tools.QuadRuple import QuadRuple
+from Tools.SymbolTable import SymbolTable
 
 
 def logger(p, log):
@@ -18,7 +18,9 @@ def logger(p, log):
 
 class Yacc:
     tokens = lex.Lexer.tokens
+    params = {}
     quadRuples = []
+    ids = {}
     symbolTable = SymbolTable()
     tblptr = [symbolTable.table]
     # arrays = {}
@@ -127,6 +129,7 @@ class Yacc:
         """tarifeMotheghayyereMahdud : jenseMahdud tarifhayeMotheghayyerha SEMICOLON"""
         for ID in p[2].trueList:
             self.tblptr[-1].enter(ID, p[1].kind)
+            self.ids[ID] = p[1].kind
 
         # if ID in self.arrays.keys():
         #     self.arrays[ID] = self.newTemp(p[1].kind)
@@ -173,6 +176,7 @@ class Yacc:
         """tarifeMotheghayyer : jens tarifhayeMotheghayyerha SEMICOLON"""
         for ID in p[2].trueList:
             self.tblptr[-1].enter(ID, p[1].kind)
+            self.ids[ID] = p[1].kind
         logger(p, 'Rule 9 : tarifeMotheghayyer -> jens tarifhayeMotheghayyerha ;')
 
     def p_tarifhayeMotegayyerha(self, p):
@@ -268,13 +272,18 @@ class Yacc:
 
     def p_jensVorudiha(self, p):
         """jensVorudiha : jens shenaseyeVorudiha"""
-
+        print(p[2].trueList)
+        c = 1
         for ID in p[2].trueList:
-            self.symbolTable[ID] = p[1].kind
-            self.quadRuples.append(QuadRuple('-', 'sp', 'paramCount', 'paramTemp1'))
-            self.quadRuples.append(QuadRuple('-', 'paramTemp1', '1', 'paramTemp2'))
-            self.quadRuples.append(QuadRuple('*', '(' + p[1].kind + ')', 'paramTemp2', ID))
-            self.quadRuples.append(QuadRuple('+', 'paramCount', '1', 'paramCount'))
+            self.tblptr[-1].enter(ID, p[1].kind, None, True)
+            self.ids[ID] = p[1].kind
+            self.params[ID] = c
+            c -= 1
+
+            # self.quadRuples.append(QuadRuple('-', 'top', 'paramCount', 'paramTemp1'))
+            # self.quadRuples.append(QuadRuple('-', 'paramTemp1', '1', ID))
+            # self.quadRuples.append(QuadRuple('+', 'paramCount', '1', 'paramCount'))
+
         logger(p, 'Rule 16 : jensVorudiha -> jens shenaseyeVorudiha')
 
     def p_shenaseyeVorudiha_1(self, p):
@@ -467,31 +476,31 @@ class Yacc:
     def p_jomleyeBazgasht_1(self, p):
         """jomleyeBazgasht : RETURN_KW SEMICOLON"""
         p[0] = Entity()
-        self.quadRuples.append(QuadRuple('-', 'top', '1', 'top'))
+        # self.quadRuples.append(QuadRuple('-', 'top', '1', 'top'))
         self.quadRuples.append(QuadRuple('*', '', 'top', 'sp'))
         self.quadRuples.append(QuadRuple('-', 'top', '1', 'top'))
-        temp = self.newTemp('long*')
+        temp = self.newTemp('long')
         self.quadRuples.append(QuadRuple('*', '', 'top', temp))
         self.quadRuples.append(QuadRuple('-', 'top', temp, 'top'))
         self.quadRuples.append(QuadRuple('-', 'top', '1', 'top'))
-        self.quadRuples.append(QuadRuple('', 'buf', '1', 'longjmp'))
+        self.quadRuples.append(QuadRuple('', 'buf[--jmp]', '1', 'longjmp'))
         logger(p, 'Rule 27.1 : jomleyeBazgasht -> برگردان ;')
 
     def p_jomleyeBazgasht_2(self, p):
         """jomleyeBazgasht : RETURN_KW ebarat SEMICOLON"""
         p[0] = Entity()
 
-        self.quadRuples.append(QuadRuple('-', 'top', '1', 'top'))
+        # self.quadRuples.append(QuadRuple('-', 'top', '1', 'top'))
         self.quadRuples.append(QuadRuple('*', '', 'top', 'sp'))
         self.quadRuples.append(QuadRuple('-', 'top', '1', 'top'))
-        temp = self.newTemp('long*')
+        temp = self.newTemp('long')
         self.quadRuples.append(QuadRuple('*', '', 'top', temp))
         self.quadRuples.append(QuadRuple('-', 'top', temp, 'top'))
         self.quadRuples.append(QuadRuple('-', 'top', '1', 'top'))
         # self.quadRuples.append(QuadRuple('(' + p[2].kind + '*)', '', self.returnID, temp))
         # self.quadRuples.append(QuadRuple('', '', p[2].place, '*' + temp))
         self.quadRuples.append(QuadRuple('', '', p[2].place, '*(' + p[2].kind + '*)' + self.returnID))
-        self.quadRuples.append(QuadRuple('', 'buf', '1', 'longjmp'))
+        self.quadRuples.append(QuadRuple('', 'buf[--jmp]', '1', 'longjmp'))
         logger(p, 'Rule 27.1 : jomleyeBazgasht -> برگردان ebarat ;')
 
     def p_jomleyeShekast(self, p):
@@ -1138,7 +1147,18 @@ class Yacc:
         logger(p, 'Rule 38.1 : taghirpazir -> ID')
         p[0] = Entity()
         p[0].place = p[1]
-        p[0].kind = self.tblptr[-1].lookup(p[1])
+
+        lookup = self.tblptr[-1].lookup(p[1])
+        p[0].kind = lookup[0]
+        if lookup[1]:
+            spvalue = self.newTemp('long*')
+            self.quadRuples.append(QuadRuple('', 'top', '', 'sp'))
+            self.quadRuples.append(QuadRuple('-', 'sp', '1', spvalue))
+            self.quadRuples.append(QuadRuple('*', '', spvalue, 'paramCount'))
+            self.quadRuples.append(QuadRuple('-', 'top', 'paramCount', 'paramTemp1'))
+            self.quadRuples.append(QuadRuple('-', 'paramTemp1', str(self.params[p[1]]), p[1]))
+
+            p[0].place = '*' + p[0].place
         if p[0].kind != 'bool':
             p[0].type = 'arith'
         else:
@@ -1182,7 +1202,8 @@ class Yacc:
         """sedaZadan : ID OPENING_PARENTHESES bordareVorudi CLOSING_PARENTHESES"""
         p[0] = Entity()
         p[0].type = 'arith'
-        type = self.lookup(p[1])
+        p[0].kind = self.tblptr[-1].lookup(p[1])[0]
+        type = self.tblptr[-1].lookup(p[1])[0]
         p[0].place = self.newTemp(type)
         self.quadRuples.append(QuadRuple('+', 'top', '1', 'top'))
         self.quadRuples.append(QuadRuple('', str(p[3].quad), '', '*top'))
@@ -1190,8 +1211,9 @@ class Yacc:
         self.quadRuples.append(QuadRuple('', '(long*)', 'sp', '*top'))
         self.quadRuples.append(QuadRuple('', 'top', '', 'sp'))
         temp = self.newTemp('int')
-        self.quadRuples.append(QuadRuple('setjmp', 'buf', '', temp))
-        self.quadRuples.append(QuadRuple('==', temp, '1', 'goto ' + str(len(self.quadRuples) + 2)))
+        self.quadRuples.append(QuadRuple('setjmp', 'buf[jmp]', '', temp))
+        self.quadRuples.append(QuadRuple('==', temp, '1', 'goto ' + str(len(self.quadRuples) + 3)))
+        self.quadRuples.append(QuadRuple('+', 'jmp', '1', 'jmp'))
         self.quadRuples.append(QuadRuple('', '', '', 'goto ' + self.funcs[p[1]]))
         temp = self.newTemp(type + '*')
         self.quadRuples.append(QuadRuple('', '(' + type + '*)', self.returnID, temp))
@@ -1303,18 +1325,19 @@ class Yacc:
         """
         temp = SymbolTable.mktable(self.tblptr[-1])
         self.tblptr[-1].enterproc(self.funcTempID, self.funcTempType, temp)
+        if not self.funcTempID == '':
+            self.ids[self.funcTempID] = self.funcTempType
         self.tblptr.append(temp)
         self.funcTempType = ''
         self.funcTempID = ''
-
 
     def p_startFunction(self, p):
         """
         params :
         """
-        spvalue = self.newTemp('long*')
-        self.quadRuples.append(QuadRuple('-', 'sp', '1', spvalue))
-        self.quadRuples.append(QuadRuple('*', '', spvalue, 'paramCount'))
+        # spvalue = self.newTemp('long*')
+        # self.quadRuples.append(QuadRuple('-', 'sp', '1', spvalue))
+        # self.quadRuples.append(QuadRuple('*', '', spvalue, 'paramCount'))
 
     def p_start(self, p):
         """

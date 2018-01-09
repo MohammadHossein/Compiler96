@@ -1,11 +1,11 @@
 from copy import deepcopy
 from os import system
-from tabnanny import errprint
 
 
 class toC:
-    def __init__(self, quadRuples=[], temps={}, symbolTable={}, arraySize={}, returnID='returnID'):
+    def __init__(self, quadRuples=[], temps={}, symbolTable={}, arraySize={}, returnID='returnID', params={}):
         self.C = []
+        self.params = params
         self.returnID = returnID
         self.define = []
         self.chars = {
@@ -29,6 +29,7 @@ class toC:
         ids = deepcopy(symbolTable)
         self.ids = {}
         number = 0
+        print(ids)
         for id in ids.keys():
             self.ids[id] = ('ID' + str(number), ids[id])
             number += 1
@@ -47,10 +48,13 @@ class toC:
             if ID in self.temps.keys():
                 code += self.temps[ID] + ' ' + ID + ';\n'
             elif ID in self.ids.keys():
+                star = ''
+                if ID in self.params.keys():
+                    star = '*'
                 if ID not in self.arraySize.keys():
-                    code += self.ids[ID][1] + ' ' + self.toEnglish(ID) + ';\n'
+                    code += self.ids[ID][1] + star + ' ' + self.toEnglish(ID) + ';\n'
                 else:
-                    code += self.ids[ID][1] + ' ' + self.toEnglish(ID) + '[' + self.arraySize[ID] + '];\n'
+                    code += self.ids[ID][1] + star + ' ' + self.toEnglish(ID) + '[' + self.arraySize[ID] + '];\n'
             else:
                 # print('Riiiiiiiiidam to define',ID)
                 return code
@@ -65,8 +69,13 @@ class toC:
         return code
 
     def toEnglish(self, ID):
-        if ID in self.ids.keys():
-            ID = self.ids[ID][0]
+        if '*' not in ID:
+            if ID in self.ids.keys():
+                ID = self.ids[ID][0]
+        else:
+            ID = ID.replace('*', '')
+            if ID in self.ids.keys():
+                ID = '*' + self.ids[ID][0]
         return ID
 
     def toEnglishArray(self, ID):
@@ -74,7 +83,7 @@ class toC:
         tempID = ID.split('[', 1)[0]
         out += self.toEnglish(tempID)
         out += '['
-        for c in ID[ID.index('[')+1: ID.index(']')]:
+        for c in ID[ID.index('[') + 1: ID.index(']')]:
             try:
                 out += self.nums[c]
             except:
@@ -84,10 +93,10 @@ class toC:
 
     def save(self):
         with open('ToC/out/outFile.c', 'w') as output:
-            output.write('#include<stdio.h>\n#include<stdlib.h>\n#include<stdbool.h>\n#include<time.h>\n'
-                         '#include<setjmp.h>\njmp_buf buf;\nlong * sp,paramCount,*paramTemp1,*paramTemp2,*top;\n'
-                         'long stack[1000];\n')
-            output.write('int main(){\nsp = stack;\ntop = stack;\nsrand(time(NULL));\n'+
+            output.write(
+                '#include<stdio.h>\n#include<stdlib.h>\n#include<stdbool.h>\n#include<time.h>\n#include<setjmp.h>\n'
+                'jmp_buf buf[1000];\nint jmp = 0;\nlong * sp,paramCount,*paramTemp1,*paramTemp2,*top;\nlong stack[1000];\n')
+            output.write('int main(){\nsp = stack;\ntop = stack;\nsrand(time(NULL));\n' +
                          'void* ' + self.returnID + ' = (void*)malloc(sizeof(float));\n')
             lineNumber = 0
             for temp in self.temps.keys():
@@ -185,5 +194,5 @@ class toC:
         if out == 0:
             print('Running...\n\n')
             system('ToC/out/executable.out')
-        else :
+        else:
             print(out.read())

@@ -47,7 +47,7 @@ class Yacc:
         if type1 == 'float' or type2 == 'float':
             tempType = 'float'
         elif type1 == 'int' or type2 == 'int' or (type1 == 'bool' and type2 == 'char') or (
-                type1 == 'char' and type2 == 'bool'):
+                        type1 == 'char' and type2 == 'bool'):
             tempType = 'int'
         elif type1 == 'char' or type2 == 'char':
             tempType = 'char'
@@ -61,6 +61,8 @@ class Yacc:
         self.c += 1
         if type == 'int':
             type = 'long'
+        if type == 'arith':
+            type = 'int'
         temp = 'Temp' + str(self.c)
         self.temps[temp] = type
         return temp
@@ -565,7 +567,9 @@ class Yacc:
             self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(len(self.quadRuples) + 2)))
             Entity.backpatch(p[3].falseList, self.quadRuples, len(self.quadRuples))
             self.quadRuples.append(QuadRuple('', '0', '', boolTemp))
-            self.quadRuples.append(QuadRuple('+', boolTemp, p[1].place, p[1].place))
+            temp = self.newTemp(p[1].type)
+            self.quadRuples.append(QuadRuple('', p[1].place, '', temp))
+            self.quadRuples.append(QuadRuple('+', boolTemp, temp, p[1].place))
         p[0].type = 'arith'
         # p[0].place = p[1].place
         p[0].place = tempPlace
@@ -585,7 +589,7 @@ class Yacc:
             p[3].place = str(ord(self.chars[p[3].place]))
         if p[3].type == 'arith':
             if p[1].size is None:
-                self.quadRuples.append(QuadRuple('-', p[3].place, p[1].place, p[1].place))
+                self.quadRuples.append(QuadRuple('-', p[1].place, p[3].place, p[1].place))
             else:
                 arrTemp = self.newTemp(p[1].kind)
                 sumTemp = self.newTemp(p[1].kind)
@@ -599,7 +603,9 @@ class Yacc:
             self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(len(self.quadRuples) + 2)))
             Entity.backpatch(p[3].falseList, self.quadRuples, len(self.quadRuples))
             self.quadRuples.append(QuadRuple('', '0', '', boolTemp))
-            self.quadRuples.append(QuadRuple('-', boolTemp, p[1].place, p[1].place))
+            temp = self.newTemp(p[1].type)
+            self.quadRuples.append(QuadRuple('', p[1].place, '', temp))
+            self.quadRuples.append(QuadRuple('-', boolTemp, temp, p[1].place))
         p[0].type = 'arith'
         # p[0].place = p[1].place
         p[0].place = tempPlace
@@ -632,7 +638,9 @@ class Yacc:
             self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(len(self.quadRuples) + 2)))
             Entity.backpatch(p[3].falseList, self.quadRuples, len(self.quadRuples))
             self.quadRuples.append(QuadRuple('', '0', '', boolTemp))
-            self.quadRuples.append(QuadRuple('*', boolTemp, p[1].place, p[1].place))
+            temp = self.newTemp(p[1].type)
+            self.quadRuples.append(QuadRuple('', p[1].place, '', temp))
+            self.quadRuples.append(QuadRuple('*', boolTemp, temp, p[1].place))
         p[0].type = 'arith'
         # p[0].place = p[1].place
         p[0].place = tempPlace
@@ -651,7 +659,7 @@ class Yacc:
             p[3].place = str(ord(self.chars[p[3].place]))
         if p[3].type == 'arith':
             if p[1].size is None:
-                self.quadRuples.append(QuadRuple('/', p[3].place, p[1].place, p[1].place))
+                self.quadRuples.append(QuadRuple('/', p[1].place, p[3].place, p[1].place))
             else:
                 arrTemp = self.newTemp(p[1].kind)
                 sumTemp = self.newTemp(p[1].kind)
@@ -665,7 +673,9 @@ class Yacc:
             self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(len(self.quadRuples) + 2)))
             Entity.backpatch(p[3].falseList, self.quadRuples, len(self.quadRuples))
             self.quadRuples.append(QuadRuple('', '0', '', boolTemp))
-            self.quadRuples.append(QuadRuple('/', boolTemp, p[1].place, p[1].place))
+            temp = self.newTemp(p[1].type)
+            self.quadRuples.append(QuadRuple('', p[1].place, '', temp))
+            self.quadRuples.append(QuadRuple('/', boolTemp, temp, p[1].place))
         p[0].type = 'arith'
         # p[0].place = p[1].place
         p[0].place = tempPlace
@@ -693,7 +703,7 @@ class Yacc:
         p[0] = Entity()
         tempPlace = p[1].place
         if p[1].size is None:
-            self.quadRuples.append(QuadRuple('-', '1', p[1].place, p[1].place))
+            self.quadRuples.append(QuadRuple('-', p[1].place, '1', p[1].place))
         else:
             p[1].place = p[1].place + '[' + p[1].size + ']'
             arrTemp = self.newTemp(p[1].kind)
@@ -1095,9 +1105,16 @@ class Yacc:
             p[0].type = 'arith'
             p[0].kind = p[2].kind
             p[0].place = self.newTemp(self.getType(p[2].kind, 'int'))
-            self.quadRuples.append(QuadRuple('%', 'rand()', p[2].place, p[0].place))
-            if 'Temp' in p[2].place:
-                self.quadRuples.append(QuadRuple('*', '-1', p[0].place, p[0].place))
+            print(p[2].size)
+            if p[2].size is not None:
+                print(p[2].place)
+                temp = self.newTemp(self.getType(p[2].kind, 'int'))
+                self.quadRuples.append(QuadRuple('%', 'rand()', p[2].size, temp))
+                self.quadRuples.append(QuadRuple('=[]', p[2].place, temp, p[0].place))
+            else:
+                self.quadRuples.append(QuadRuple('%', 'rand()', p[2].place, p[0].place))
+                self.quadRuples.append(QuadRuple('>=', p[2].place, '0', 'goto ' + str(len(self.quadRuples) + 2)))
+                self.quadRuples.append(QuadRuple('*', p[0].place, '-1', p[0].place))
         elif p[1].place == '*':
             # TODO pointer
             pointerTemp = self.newTemp(p[2].kind + '*')
@@ -1139,6 +1156,9 @@ class Yacc:
             temp = self.newTemp(p[1].kind)
             self.quadRuples.append(QuadRuple('=[]', p[1].place, p[1].size, temp))
             p[0].place = temp
+
+        if p[1].place in self.arraySize.keys():
+            p[0].size = self.arraySize[p[1].place]
         logger(p, 'Rule 37.1 : amel -> taghirpazir')
 
     def p_amel_2(self, p):

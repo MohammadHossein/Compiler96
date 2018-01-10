@@ -3,8 +3,10 @@ from os import system
 
 
 class toC:
-    def __init__(self, quadRuples=[], temps={}, symbolTable={}, arraySize={}, returnID='returnID', params={}):
+    def __init__(self, quadRuples=[], temps={}, symbolTable={}, arraySize={}, returnID='returnID', params={},structs={}):
         self.C = []
+        print(temps)
+        self.structs = structs
         self.params = params
         self.returnID = returnID
         self.define = []
@@ -33,6 +35,8 @@ class toC:
         for id in ids.keys():
             self.ids[id] = ('ID' + str(number), ids[id])
             number += 1
+        for struct in self.structs.keys():
+            self.ids[struct] = self.structs[struct]
         # print IDS
         print('------------IDs---------------\n')
         for key, value in self.ids.items():
@@ -102,15 +106,23 @@ class toC:
             for temp in self.temps.keys():
                 code = self.defineId(temp)
                 output.write(code)
-            for ID in self.symbolTable.keys():
+            for ID in self.ids.keys():
                 code = self.defineId(ID)
                 output.write(code)
             for quadRuple in self.quadRuples:
                 code = ''
+                if quadRuple.result in self.structs.keys():
+                    quadRuple.result = self.ids[quadRuple.result][0]
+                if quadRuple.arg_one in self.structs.keys():
+                    quadRuple.arg_one = self.ids[quadRuple.arg_one][0]
+                if quadRuple.arg_two in self.structs.keys():
+                    quadRuple.arg_two = self.ids[quadRuple.arg_two][0]
                 # code += self.defineId(quadRuple.arg_one)
                 # code += self.defineId(quadRuple.arg_two)
                 code += self.addLabel(lineNumber)
-                if quadRuple.result in self.temps.keys():
+                if '*' in quadRuple.arg_one and '(' in quadRuple.arg_one:
+                    code+= str(quadRuple) + ';\n'
+                elif quadRuple.result in self.temps.keys():
                     # code += self.defineId(quadRuple.result)
                     # code += self.addLabel(lineNumber)
                     quadRuple.arg_one = self.toEnglish(quadRuple.arg_one)
@@ -159,6 +171,7 @@ class toC:
                 output.write(self.defineId(id))
                 type = self.ids[id][1]
                 ID = self.ids[id][0]
+                print(ID,type)
                 if type == 'int':
                     if id in self.arraySize.keys():
                         for i in range(int(self.arraySize[id])):
@@ -170,13 +183,13 @@ class toC:
                         for i in range(int(self.arraySize[id])):
                             output.write('printf("' + ID + '[' + str(i) + ']: %f\\n",' + ID + '[' + str(i) + ']);\n')
                     else:
-                        output.write('printf("' + ID + ': %d\\n",' + ID + ');\n')
+                        output.write('printf("' + ID + ': %f\\n",' + ID + ');\n')
                 if type == 'char':
                     if id in self.arraySize.keys():
                         for i in range(int(self.arraySize[id])):
                             output.write('printf("' + ID + '[' + str(i) + ']: %c\\n",' + ID + '[' + str(i) + ']);\n')
                     else:
-                        output.write('printf("' + ID + ': %d\\n",' + ID + ');\n')
+                        output.write('printf("' + ID + ': %c\\n",' + ID + ');\n')
                 if type == 'bool':
                     if id in self.arraySize.keys():
                         for i in range(int(self.arraySize[id])):

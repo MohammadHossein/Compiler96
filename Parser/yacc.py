@@ -33,6 +33,7 @@ class Yacc:
     paramCount = 0
     funcTempID = ''
     funcTempType = ''
+    structs = {}
     chars = {
         'آ': 'a', 'ا': 'a', 'ب': 'b', 'پ': 'p', 'ت': 't', 'ث': 's', 'ج': 'j', 'چ': 'c', 'ح': 'h', 'خ': 'k', 'د': 'd',
         'ذ': 'z', 'ر': 'r', 'ز': 'z', 'ژ': 'x', 'س': 'S', 'ش': 's', 'ص': 's', 'ض': 'z', 'ط': 't', 'ظ': 'z',
@@ -47,7 +48,7 @@ class Yacc:
         if type1 == 'float' or type2 == 'float':
             tempType = 'float'
         elif type1 == 'int' or type2 == 'int' or (type1 == 'bool' and type2 == 'char') or (
-                type1 == 'char' and type2 == 'bool'):
+                        type1 == 'char' and type2 == 'bool'):
             tempType = 'int'
         elif type1 == 'char' or type2 == 'char':
             tempType = 'char'
@@ -64,6 +65,10 @@ class Yacc:
         temp = 'Temp' + str(self.c)
         self.temps[temp] = type
         return temp
+
+    def getStructID(self):
+        self.c += 1
+        return 'STRUCT' + str(self.c)
 
     def newFuncTemp(self, name):
         if name == 'اصلی':
@@ -112,18 +117,23 @@ class Yacc:
         logger(p, 'Rule 3.1 : tarif -> tarifeTabe')
 
     def p_tarifeSakhtar(self, p):  # TODO struct
-        """tarifeSakhtar : STRUCTURE_KW ID OPENING_BRACE tarifhayeMahalli CLOSING_BRACE"""
+        """tarifeSakhtar : STRUCTURE_KW ID startScope OPENING_BRACE tarifhayeMahalli CLOSING_BRACE"""
+        self.tblptr[-1].parent.items[-1].name = p[2]
+        self.tblptr[-1].parent.items[-1].type = 'struct'
+        self.tblptr.pop()
         logger(p, 'Rule 4 : tarifeSakhtar -> ساختار SHENASE { tarifhayeMahalli }')
 
-    def p_tarifhayeMahalli(self, p):
-        """tarifhayeMahalli : tarifhayeMahalli tarifeMotheghayyereMahdud
-                            | empty
-        """
+    def p_tarifhayeMahalli_1(self, p):
+        """tarifhayeMahalli : tarifhayeMahalli tarifeMotheghayyereMahdud"""
         p[0] = Entity()
-        if len(p) == 3:
-            logger(p, 'Rule 5.1: tarifhayeMahalli -> tarifhayeMahalli tarifeMotheghayyereMahdud')
-        elif len(p) == 2:
-            logger(p, 'Rule 5.2 :tarifhayeMahalli -> 𝜀')
+
+        logger(p, 'Rule 5.1: tarifhayeMahalli -> tarifhayeMahalli tarifeMotheghayyereMahdud')
+
+    def p_tarifhayeMahalli_2(self, p):
+        """tarifhayeMahalli : empty """
+        p[0] = Entity()
+
+        logger(p, 'Rule 5.2 :tarifhayeMahalli -> 𝜀')
 
     def p_tarifeMotheghayyereMahdud(self, p):
         """tarifeMotheghayyereMahdud : jenseMahdud tarifhayeMotheghayyerha SEMICOLON"""
@@ -1085,11 +1095,13 @@ class Yacc:
         if p[1].place == '-':
             p[0] = Entity()
             p[0].type = 'arith'
+            p[0].kind = p[2].kind
             p[0].place = self.newTemp(self.getType(p[2].kind, 'int'))
             self.quadRuples.append(QuadRuple('*', '-1', p[2].place, p[0].place))
         elif p[1].place == '?':
             p[0] = Entity()
             p[0].type = 'arith'
+            p[0].kind = p[2].kind
             p[0].place = self.newTemp(self.getType(p[2].kind, 'int'))
             self.quadRuples.append(QuadRuple('%', 'rand()', p[2].place, p[0].place))
             if 'Temp' in p[2].place:
@@ -1176,6 +1188,9 @@ class Yacc:
 
     def p_taghirpazir_3(self, p):
         """taghirpazir :  taghirpazir DOT ID"""
+        p[0] = Entity()
+        p[0].place = p[1].place + '.' + p[3]
+        self.structs[p[0].place] = (self.getStructID(), self.symbolTable.table.lookupStruct(p[3],p[1].place)[0])
         logger(p, 'Rule 38.3 : taghirpazir -> taghirpazir . ID')
 
     def p_taghirnapazir_1(self, p):

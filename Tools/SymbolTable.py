@@ -25,11 +25,21 @@ class Table:
         self.items.append(TableProc(name, type, newTable, self))
 
     def lookup(self, ID):
+        print(type(self.parent), self.items)
         for item in self.items:
             if item.name == ID:
                 return item.type, item.isParam
         if self.parent is not None:
             return self.parent.lookup(ID)
+        raise KeyError('متفیر \"' + ID + '\" تعریف نشده است!')
+
+    def lookupStruct(self, ID, struct):
+        print(type(self.parent), self.items)
+        for item in self.items:
+            if item.type == 'struct' and item.name == struct:
+                for i in item.table.items:
+                    if i.name == ID:
+                        return i.type, i.isParam
         raise KeyError('متفیر \"' + ID + '\" تعریف نشده است!')
 
 

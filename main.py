@@ -5,7 +5,7 @@ from Parser.yacc import Yacc
 from ToC.toC import toC
 
 if __name__ == '__main__':
-    f = codecs.open('Samples/TestCase/Function.fa', encoding='utf-8')
+    f = codecs.open('Samples/TestCase/statement', encoding='utf-8')
     data = f.read()
     f.close()
     # lexer = Lexer().build()

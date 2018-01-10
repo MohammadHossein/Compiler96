@@ -345,7 +345,7 @@ class Yacc:
 
     def p_jomleyeMorakkab(self, p):
         """jomleyeMorakkab : OPENING_BRACE startScope  tarifhayeMahalli jomleha CLOSING_BRACE"""
-        p[0] = p[3]
+        p[0] = p[4]
         self.tblptr.pop()
         logger(p, 'Rule 20 : jomleyeMorakkab -> { tarifhayeMahalli jomleha }')
 
@@ -473,6 +473,7 @@ class Yacc:
             self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(len(self.quadRuples) + 1)))
         else:
             errprint('Type exp :(')
+        print(len(self.quadRuples),p[8].breakList)
         Entity.backpatch(p[8].breakList, self.quadRuples, len(self.quadRuples))
         logger(p, 'Rule 26 : jomleyeTekrar -> وقتی ( ebarateSade ) jomle')
 

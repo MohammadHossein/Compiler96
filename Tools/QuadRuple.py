@@ -16,6 +16,7 @@ class QuadRuple:
             '۹': '9',
             '۰': '0',
         }
+        self.__str__()
 
     def __str__(self):
         result = self.result

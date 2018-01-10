@@ -16,6 +16,7 @@ class QuadRuple:
             '۹': '9',
             '۰': '0',
         }
+        self.__str__()
 
     def __str__(self):
         result = self.result
@@ -23,14 +24,14 @@ class QuadRuple:
             for char in self.arg_two:
                 if char in self.toEnglish.keys():
                     self.arg_two = self.arg_two.replace(char, self.toEnglish[char])
-        else:
-            self.arg_two = 'None'
+        # else:
+        #     self.arg_two = 'None'
         if self.arg_one is not None:
             for char in self.arg_one:
                 if char in self.toEnglish.keys():
                     self.arg_one = self.arg_one.replace(char, self.toEnglish[char])
-        else:
-            self.arg_one = 'None'
+        # else:
+        #     self.arg_one = 'None'
 
         op = self.op
         if 'goto' in result:

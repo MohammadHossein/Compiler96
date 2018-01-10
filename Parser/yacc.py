@@ -239,10 +239,12 @@ class Yacc:
         self.funcTempType = p[1].kind
         p[0] = Entity()
         p[0].place = p[2]
+        self.cP = 1
         logger(p, 'Rule 13.01 jenseTabe -> jens ID')
 
     def p_jenseTabe_2(self, p):
         """ jenseTabe : ID """
+        self.cP = 1
         self.quadRuples.append(QuadRuple('label', '', '', self.newFuncTemp(p[1])))
         self.funcTempID = p[1]
         self.funcTempType = None
@@ -273,12 +275,11 @@ class Yacc:
     def p_jensVorudiha(self, p):
         """jensVorudiha : jens shenaseyeVorudiha"""
         print(p[2].trueList)
-        c = 1
         for ID in p[2].trueList:
             self.tblptr[-1].enter(ID, p[1].kind, None, True)
             self.ids[ID] = p[1].kind
-            self.params[ID] = c
-            c -= 1
+            self.params[ID] = self.cP
+            self.cP -= 1
 
             # self.quadRuples.append(QuadRuple('-', 'top', 'paramCount', 'paramTemp1'))
             # self.quadRuples.append(QuadRuple('-', 'paramTemp1', '1', ID))
@@ -461,8 +462,8 @@ class Yacc:
         """jomleyeTekrar : WHILE_KW OPENING_PARENTHESES empty ebarateSade m CLOSING_PARENTHESES empty jomle"""
         p[0] = Entity()
         if p[4].type == 'bool':
-            Entity.backpatch(p[4].trueList, self.quadRuples, p[8].quad)
-            Entity.backpatch(p[4].falseList, self.quadRuples, len(self.quadRuples))
+            Entity.backpatch(p[4].trueList, self.quadRuples, p[7].quad)
+            Entity.backpatch(p[4].falseList, self.quadRuples, len(self.quadRuples)+1)
             self.quadRuples.append(QuadRuple('', '', '', 'goto ' + str(p[3].quad)))
         elif p[4].type == 'arith':
             Entity.backpatch([p[5].quad], self.quadRuples, len(self.quadRuples))
@@ -534,6 +535,7 @@ class Yacc:
         p[0].type = 'arith'
         # p[0].place = p[1].place
         p[0].place = tempPlace
+        p[0].quad = len(self.quadRuples)
         logger(p, 'Rule 29.1 : ebarat -> taghirpazir = ebarat')
 
     def p_ebarat_2(self, p):
@@ -1085,11 +1087,13 @@ class Yacc:
         if p[1].place == '-':
             p[0] = Entity()
             p[0].type = 'arith'
+            p[0].kind = p[2].kind
             p[0].place = self.newTemp(self.getType(p[2].kind, 'int'))
             self.quadRuples.append(QuadRuple('*', '-1', p[2].place, p[0].place))
         elif p[1].place == '?':
             p[0] = Entity()
             p[0].type = 'arith'
+            p[0].kind = p[2].kind
             p[0].place = self.newTemp(self.getType(p[2].kind, 'int'))
             self.quadRuples.append(QuadRuple('%', 'rand()', p[2].place, p[0].place))
             if 'Temp' in p[2].place:
@@ -1156,7 +1160,7 @@ class Yacc:
             self.quadRuples.append(QuadRuple('-', 'sp', '1', spvalue))
             self.quadRuples.append(QuadRuple('*', '', spvalue, 'paramCount'))
             self.quadRuples.append(QuadRuple('-', 'top', 'paramCount', 'paramTemp1'))
-            self.quadRuples.append(QuadRuple('-', 'paramTemp1', str(self.params[p[1]]), p[1]))
+            self.quadRuples.append(QuadRuple('-', 'paramTemp1', '(' + str(self.params[p[1]]) + ')', p[1]))
 
             p[0].place = '*' + p[0].place
         if p[0].kind != 'bool':
@@ -1205,6 +1209,7 @@ class Yacc:
         p[0].kind = self.tblptr[-1].lookup(p[1])[0]
         type = self.tblptr[-1].lookup(p[1])[0]
         p[0].place = self.newTemp(type)
+        print(p[3].quad)
         self.quadRuples.append(QuadRuple('+', 'top', '1', 'top'))
         self.quadRuples.append(QuadRuple('', str(p[3].quad), '', '*top'))
         self.quadRuples.append(QuadRuple('+', 'top', '1', 'top'))
@@ -1235,7 +1240,7 @@ class Yacc:
     def p_bordareVorudiha_1(self, p):
         """bordareVorudiha : bordareVorudiha COMMA ebarat"""
         self.quadRuples.append(QuadRuple('+', 'top', '1', 'top'))
-        self.quadRuples.append(QuadRuple('', p[1].place, '', '*top'))
+        self.quadRuples.append(QuadRuple('', p[3].place, '', '*top'))
         p[0] = Entity()
         p[0].quad = p[1].quad + 1
         logger(p, 'Rule 42.1: bordareVorudiha -> bordareVorudiha , ebarat')

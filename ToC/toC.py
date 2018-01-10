@@ -69,13 +69,17 @@ class toC:
         return code
 
     def toEnglish(self, ID):
+        # print(ID,end=' ')
         if '*' not in ID:
             if ID in self.ids.keys():
                 ID = self.ids[ID][0]
+        elif '*)' in ID:
+            pass
         else:
             ID = ID.replace('*', '')
-            if ID in self.ids.keys():
+            if ID in self.params.keys():
                 ID = '*' + self.ids[ID][0]
+        # print(ID)
         return ID
 
     def toEnglishArray(self, ID):
